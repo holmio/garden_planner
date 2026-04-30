@@ -1,0 +1,25 @@
+{
+    "firestore": {
+        "rules": "firestore.rules",
+        "indexes": "firestore.indexes.json"
+    },
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "garden-planner-12345",
+                    "appId": "1:571043541513:android:7943b429d89e971a24bed8",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "garden-planner-12345",
+                    "configurations": {
+                        "android": "1:571043541513:android:7943b429d89e971a24bed8"
+                    }
+                }
+            }
+        }
+    }
+}

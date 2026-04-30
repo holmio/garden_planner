@@ -19,3 +19,11 @@ class TerraceLoaded extends TerraceState {
   @override
   List<Object?> get props => [terraces, hasUnsavedChanges];
 }
+
+class TerraceError extends TerraceState {
+  final String message;
+  TerraceError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}

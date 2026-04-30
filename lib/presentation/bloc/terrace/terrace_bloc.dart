@@ -1,13 +1,21 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/terrace.dart';
+import '../../../domain/repositories/terrace_repository.dart';
+import '../../../domain/repositories/auth_repository.dart';
 import 'terrace_event.dart';
 import 'terrace_state.dart';
 
 class TerraceBloc extends Bloc<TerraceEvent, TerraceState> {
+  final TerraceRepository terraceRepository;
+  final AuthRepository authRepository;
+
   List<Terrace> _savedTerraces = [];
   List<Terrace> _currentTerraces = [];
 
-  TerraceBloc() : super(TerraceInitial()) {
+  TerraceBloc({
+    required this.terraceRepository,
+    required this.authRepository,
+  }) : super(TerraceInitial()) {
     on<LoadTerraces>(_onLoadTerraces);
     on<AddTerrace>(_onAddTerrace);
     on<UpdateTerracePosition>(_onUpdateTerracePosition);
@@ -15,14 +23,20 @@ class TerraceBloc extends Bloc<TerraceEvent, TerraceState> {
     on<ResetLayout>(_onResetLayout);
   }
 
-  void _onLoadTerraces(LoadTerraces event, Emitter<TerraceState> emit) {
+  Future<void> _onLoadTerraces(LoadTerraces event, Emitter<TerraceState> emit) async {
     emit(TerraceLoading());
-    // Mocking a database load
-    _savedTerraces = [
-      const Terrace(id: '1', name: 'Tomatoes', x: 100, y: 100, width: 200, height: 150, sunExposure: 'Full Sun'),
-    ];
-    _currentTerraces = List.from(_savedTerraces);
-    emit(TerraceLoaded(_currentTerraces));
+    try {
+      final user = await authRepository.getCurrentUser();
+      if (user == null) {
+        emit(TerraceError("User not authenticated"));
+        return;
+      }
+      _savedTerraces = await terraceRepository.getTerraces(user.id);
+      _currentTerraces = List.from(_savedTerraces);
+      emit(TerraceLoaded(_currentTerraces));
+    } catch (e) {
+      emit(TerraceError(e.toString()));
+    }
   }
 
   void _onAddTerrace(AddTerrace event, Emitter<TerraceState> emit) {
@@ -48,10 +62,17 @@ class TerraceBloc extends Bloc<TerraceEvent, TerraceState> {
     }
   }
 
-  void _onSaveLayout(SaveLayout event, Emitter<TerraceState> emit) {
-    _savedTerraces = List.from(_currentTerraces);
-    // TODO: Send to Firebase
-    emit(TerraceLoaded(_currentTerraces, hasUnsavedChanges: false));
+  Future<void> _onSaveLayout(SaveLayout event, Emitter<TerraceState> emit) async {
+    try {
+      final user = await authRepository.getCurrentUser();
+      if (user == null) throw Exception("User not authenticated");
+
+      await terraceRepository.saveTerraces(user.id, _currentTerraces);
+      _savedTerraces = List.from(_currentTerraces);
+      emit(TerraceLoaded(_currentTerraces, hasUnsavedChanges: false));
+    } catch (e) {
+      emit(TerraceError(e.toString()));
+    }
   }
 
   void _onResetLayout(ResetLayout event, Emitter<TerraceState> emit) {

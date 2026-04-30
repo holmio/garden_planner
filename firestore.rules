@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Reusable Functions
+    function isLoggedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isLoggedIn() && request.auth.uid == userId;
+    }
+
+    // User Profiles & Data
+    match /users/{userId}/{document=**} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Global Terraces (If they are stored globally instead of under /users/)
+    match /terraces/{terraceId} {
+      allow read, write: if isLoggedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isLoggedIn() && request.resource.data.userId == request.auth.uid;
+    }
+  }
+}
