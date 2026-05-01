@@ -56,13 +56,18 @@ class GardenPlannerApp extends StatelessWidget {
             create: (context) => TerraceBloc(
               terraceRepository: context.read<TerraceRepository>(),
               authRepository: context.read<AuthRepository>(),
-            )..add(LoadTerraces()),
+            ),
           ),
         ],
         child: MaterialApp(
           title: 'Garden Planner',
           theme: AppTheme.lightTheme,
-          home: BlocBuilder<AuthBloc, AuthState>(
+          home: BlocConsumer<AuthBloc, AuthState>(
+            listener: (context, state) {
+              if (state is Authenticated) {
+                context.read<TerraceBloc>().add(LoadTerraces());
+              }
+            },
             builder: (context, state) {
               if (state is AuthLoading) {
                 return const Scaffold(
@@ -72,6 +77,10 @@ class GardenPlannerApp extends StatelessWidget {
                 );
               } else if (state is Authenticated) {
                 return const HomeScreen();
+              } else if (state is AuthError && state.previousUser != null) {
+                return const HomeScreen();
+              } else if (state is AuthError) {
+                return LoginScreen(errorMessage: state.message);
               } else {
                 return const LoginScreen();
               }

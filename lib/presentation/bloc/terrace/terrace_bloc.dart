@@ -12,10 +12,8 @@ class TerraceBloc extends Bloc<TerraceEvent, TerraceState> {
   List<Terrace> _savedTerraces = [];
   List<Terrace> _currentTerraces = [];
 
-  TerraceBloc({
-    required this.terraceRepository,
-    required this.authRepository,
-  }) : super(TerraceInitial()) {
+  TerraceBloc({required this.terraceRepository, required this.authRepository})
+    : super(TerraceInitial()) {
     on<LoadTerraces>(_onLoadTerraces);
     on<AddTerrace>(_onAddTerrace);
     on<UpdateTerracePosition>(_onUpdateTerracePosition);
@@ -23,19 +21,26 @@ class TerraceBloc extends Bloc<TerraceEvent, TerraceState> {
     on<ResetLayout>(_onResetLayout);
   }
 
-  Future<void> _onLoadTerraces(LoadTerraces event, Emitter<TerraceState> emit) async {
+  Future<void> _onLoadTerraces(
+    LoadTerraces event,
+    Emitter<TerraceState> emit,
+  ) async {
     emit(TerraceLoading());
     try {
       final user = await authRepository.getCurrentUser();
       if (user == null) {
-        emit(TerraceError("User not authenticated"));
+        emit(TerraceError('Please sign in before loading your garden.'));
         return;
       }
       _savedTerraces = await terraceRepository.getTerraces(user.id);
       _currentTerraces = List.from(_savedTerraces);
       emit(TerraceLoaded(_currentTerraces));
     } catch (e) {
-      emit(TerraceError(e.toString()));
+      emit(
+        TerraceError(
+          'Could not load your garden. Please check your connection and try again.',
+        ),
+      );
     }
   }
 
@@ -44,7 +49,10 @@ class TerraceBloc extends Bloc<TerraceEvent, TerraceState> {
     emit(TerraceLoaded(_currentTerraces, hasUnsavedChanges: true));
   }
 
-  void _onUpdateTerracePosition(UpdateTerracePosition event, Emitter<TerraceState> emit) {
+  void _onUpdateTerracePosition(
+    UpdateTerracePosition event,
+    Emitter<TerraceState> emit,
+  ) {
     final index = _currentTerraces.indexWhere((t) => t.id == event.id);
     if (index != -1) {
       final t = _currentTerraces[index];
@@ -62,21 +70,60 @@ class TerraceBloc extends Bloc<TerraceEvent, TerraceState> {
     }
   }
 
-  Future<void> _onSaveLayout(SaveLayout event, Emitter<TerraceState> emit) async {
+  Future<void> _onSaveLayout(
+    SaveLayout event,
+    Emitter<TerraceState> emit,
+  ) async {
+    final previousState = state;
+    if (previousState is TerraceLoaded) {
+      emit(previousState.copyWith(isSaving: true, clearError: true));
+    }
+
     try {
       final user = await authRepository.getCurrentUser();
-      if (user == null) throw Exception("User not authenticated");
+      if (user == null) {
+        _emitSaveFailure(
+          emit,
+          previousState,
+          'Please sign in again before saving your garden.',
+        );
+        return;
+      }
 
       await terraceRepository.saveTerraces(user.id, _currentTerraces);
       _savedTerraces = List.from(_currentTerraces);
       emit(TerraceLoaded(_currentTerraces, hasUnsavedChanges: false));
     } catch (e) {
-      emit(TerraceError(e.toString()));
+      _emitSaveFailure(
+        emit,
+        previousState,
+        'Could not save your garden. Your edits are still on screen.',
+      );
     }
   }
 
   void _onResetLayout(ResetLayout event, Emitter<TerraceState> emit) {
     _currentTerraces = List.from(_savedTerraces);
     emit(TerraceLoaded(_currentTerraces, hasUnsavedChanges: false));
+  }
+
+  void _emitSaveFailure(
+    Emitter<TerraceState> emit,
+    TerraceState previousState,
+    String message,
+  ) {
+    if (previousState is TerraceLoaded) {
+      emit(
+        previousState.copyWith(
+          terraces: List.from(_currentTerraces),
+          hasUnsavedChanges: true,
+          isSaving: false,
+          errorMessage: message,
+        ),
+      );
+      return;
+    }
+
+    emit(TerraceError(message));
   }
 }

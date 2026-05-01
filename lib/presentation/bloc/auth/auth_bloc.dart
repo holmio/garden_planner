@@ -12,7 +12,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignOutEvent>(_onSignOut);
   }
 
-  Future<void> _onCheckAuthStatus(CheckAuthStatusEvent event, Emitter<AuthState> emit) async {
+  Future<void> _onCheckAuthStatus(
+    CheckAuthStatusEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
     try {
       final user = await authRepository.getCurrentUser();
@@ -22,11 +25,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(Unauthenticated());
       }
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(
+        const AuthError(
+          'Could not check your sign-in status. Please try again.',
+        ),
+      );
     }
   }
 
-  Future<void> _onSignInWithGoogle(SignInWithGoogleEvent event, Emitter<AuthState> emit) async {
+  Future<void> _onSignInWithGoogle(
+    SignInWithGoogleEvent event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
     try {
       final user = await authRepository.signInWithGoogle();
@@ -36,17 +46,29 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(const AuthError('Sign in aborted.'));
       }
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(
+        const AuthError(
+          'Google sign-in failed. Please check your connection and try again.',
+        ),
+      );
     }
   }
 
   Future<void> _onSignOut(SignOutEvent event, Emitter<AuthState> emit) async {
+    final previousUser = state is Authenticated
+        ? (state as Authenticated).user
+        : null;
     emit(AuthLoading());
     try {
       await authRepository.signOut();
       emit(Unauthenticated());
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(
+        AuthError(
+          'Could not sign out. Please try again.',
+          previousUser: previousUser,
+        ),
+      );
     }
   }
 }

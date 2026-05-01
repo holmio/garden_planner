@@ -3,7 +3,7 @@ import '../../../domain/entities/user.dart';
 
 abstract class AuthState extends Equatable {
   const AuthState();
-  
+
   @override
   List<Object?> get props => [];
 }
@@ -24,8 +24,10 @@ class Unauthenticated extends AuthState {}
 
 class AuthError extends AuthState {
   final String message;
-  const AuthError(this.message);
+  final AppUser? previousUser;
+
+  const AuthError(this.message, {this.previousUser});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, previousUser];
 }

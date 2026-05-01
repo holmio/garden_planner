@@ -4,7 +4,9 @@ import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_event.dart';
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+  final String? errorMessage;
+
+  const LoginScreen({super.key, this.errorMessage});
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +29,31 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 48),
+              if (errorMessage != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    border: Border.all(color: Colors.red.shade200),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.red.shade800),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
               ElevatedButton.icon(
                 icon: const Icon(Icons.login),
                 label: const Text('Sign in with Google'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.green.shade800,
                   textStyle: const TextStyle(fontSize: 18),
