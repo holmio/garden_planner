@@ -1,3 +1,5 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/firebase_auth_datasource.dart';
@@ -25,6 +27,7 @@ class FirebaseAuthRepositoryImpl implements AuthRepository {
   @override
   Future<AppUser?> signInWithGoogle() async {
     try {
+      await _googleSignIn.initialize();
       final googleUser = await _googleSignIn.authenticate();
 
       final googleAuth = googleUser.authentication;
