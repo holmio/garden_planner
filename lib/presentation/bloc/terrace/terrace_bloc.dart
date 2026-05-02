@@ -17,6 +17,7 @@ class TerraceBloc extends Bloc<TerraceEvent, TerraceState> {
     on<LoadTerraces>(_onLoadTerraces);
     on<AddTerrace>(_onAddTerrace);
     on<UpdateTerracePosition>(_onUpdateTerracePosition);
+    on<UpdateTerraceSize>(_onUpdateTerraceSize);
     on<SaveLayout>(_onSaveLayout);
     on<ResetLayout>(_onResetLayout);
   }
@@ -56,15 +57,21 @@ class TerraceBloc extends Bloc<TerraceEvent, TerraceState> {
     final index = _currentTerraces.indexWhere((t) => t.id == event.id);
     if (index != -1) {
       final t = _currentTerraces[index];
-      _currentTerraces[index] = Terrace(
-        id: t.id,
-        name: t.name,
-        x: event.x,
-        y: event.y,
-        width: t.width,
-        height: t.height,
-        sunExposure: t.sunExposure,
-        irrigationType: t.irrigationType,
+      _currentTerraces[index] = t.copyWith(x: event.x, y: event.y);
+      emit(TerraceLoaded(List.from(_currentTerraces), hasUnsavedChanges: true));
+    }
+  }
+
+  void _onUpdateTerraceSize(
+    UpdateTerraceSize event,
+    Emitter<TerraceState> emit,
+  ) {
+    final index = _currentTerraces.indexWhere((t) => t.id == event.id);
+    if (index != -1) {
+      final t = _currentTerraces[index];
+      _currentTerraces[index] = t.copyWith(
+        width: event.width,
+        height: event.height,
       );
       emit(TerraceLoaded(List.from(_currentTerraces), hasUnsavedChanges: true));
     }

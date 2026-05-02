@@ -24,5 +24,15 @@ class UpdateTerracePosition extends TerraceEvent {
   List<Object?> get props => [id, x, y];
 }
 
+class UpdateTerraceSize extends TerraceEvent {
+  final String id;
+  final double width;
+  final double height;
+  UpdateTerraceSize(this.id, this.width, this.height);
+  @override
+  List<Object?> get props => [id, width, height];
+}
+
 class SaveLayout extends TerraceEvent {}
+
 class ResetLayout extends TerraceEvent {}

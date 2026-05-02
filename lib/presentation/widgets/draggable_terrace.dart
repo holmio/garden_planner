@@ -16,12 +16,18 @@ class DraggableTerrace extends StatefulWidget {
 }
 
 class _DraggableTerraceState extends State<DraggableTerrace> {
+  static const double _gridSize = 50;
+  static const double _minSize = 50;
+  static const double _maxSize = 600;
+
   late Offset _position;
+  late Size _size;
 
   @override
   void initState() {
     super.initState();
     _position = Offset(widget.terrace.x, widget.terrace.y);
+    _size = Size(widget.terrace.width, widget.terrace.height);
   }
 
   @override
@@ -30,6 +36,10 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
     if (oldWidget.terrace.x != widget.terrace.x ||
         oldWidget.terrace.y != widget.terrace.y) {
       _position = Offset(widget.terrace.x, widget.terrace.y);
+    }
+    if (oldWidget.terrace.width != widget.terrace.width ||
+        oldWidget.terrace.height != widget.terrace.height) {
+      _size = Size(widget.terrace.width, widget.terrace.height);
     }
   }
 
@@ -46,8 +56,8 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
         },
         onPanEnd: (details) {
           final snappedPosition = Offset(
-            (_position.dx / 50).round() * 50.0,
-            (_position.dy / 50).round() * 50.0,
+            (_position.dx / _gridSize).round() * _gridSize,
+            (_position.dy / _gridSize).round() * _gridSize,
           );
 
           setState(() {
@@ -71,8 +81,8 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
           );
         },
         child: Container(
-          width: widget.terrace.width,
-          height: widget.terrace.height,
+          width: _size.width,
+          height: _size.height,
           decoration: BoxDecoration(
             color: Colors.green.shade400,
             border: Border.all(color: Colors.green.shade900, width: 2),
@@ -100,19 +110,58 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
               Positioned(
                 right: 0,
                 bottom: 0,
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.5),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(8),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onPanUpdate: (details) {
+                    setState(() {
+                      _size = Size(
+                        (_size.width + details.delta.dx).clamp(
+                          _minSize,
+                          _maxSize,
+                        ),
+                        (_size.height + details.delta.dy).clamp(
+                          _minSize,
+                          _maxSize,
+                        ),
+                      );
+                    });
+                  },
+                  onPanEnd: (details) {
+                    final snappedSize = Size(
+                      (_size.width / _gridSize).round() * _gridSize,
+                      (_size.height / _gridSize).round() * _gridSize,
+                    );
+
+                    setState(() {
+                      _size = Size(
+                        snappedSize.width.clamp(_minSize, _maxSize),
+                        snappedSize.height.clamp(_minSize, _maxSize),
+                      );
+                    });
+
+                    context.read<TerraceBloc>().add(
+                      UpdateTerraceSize(
+                        widget.terrace.id,
+                        _size.width,
+                        _size.height,
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        bottomRight: Radius.circular(6),
+                      ),
                     ),
-                  ),
-                  child: const Icon(
-                    Icons.open_in_full,
-                    size: 12,
-                    color: Colors.black,
+                    child: const Icon(
+                      Icons.open_in_full,
+                      size: 14,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
               ),
