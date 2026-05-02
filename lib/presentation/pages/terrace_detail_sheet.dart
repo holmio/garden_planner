@@ -1,37 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/terrace.dart';
-import '../bloc/terrace/terrace_bloc.dart';
-import '../bloc/terrace/terrace_event.dart';
 import 'plant_search_screen.dart';
 
 class TerraceDetailSheet extends StatefulWidget {
   final Terrace terrace;
-  final Size canvasSize;
 
-  const TerraceDetailSheet({
-    super.key,
-    required this.terrace,
-    required this.canvasSize,
-  });
+  const TerraceDetailSheet({super.key, required this.terrace});
 
   @override
   State<TerraceDetailSheet> createState() => _TerraceDetailSheetState();
 }
 
 class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
-  static const double _minSize = 50;
-
-  late double _width;
-  late double _height;
-
-  @override
-  void initState() {
-    super.initState();
-    _width = widget.terrace.width;
-    _height = widget.terrace.height;
-  }
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -77,26 +57,6 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
                   widget.terrace.irrigationType ?? 'No Irrigation',
                 ),
               ],
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Size: ${_width.round()} x ${_height.round()}',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
-            _buildSizeSlider(
-              label: 'Width',
-              value: _width,
-              max: _maxWidth,
-              onChanged: (value) => setState(() => _width = value),
-              onChangeEnd: (_) => _updateTerraceSize(context),
-            ),
-            _buildSizeSlider(
-              label: 'Height',
-              value: _height,
-              max: _maxHeight,
-              onChanged: (value) => setState(() => _height = value),
-              onChangeEnd: (_) => _updateTerraceSize(context),
             ),
             const SizedBox(height: 24),
             const Text(
@@ -149,57 +109,6 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
       ),
     );
   }
-
-  Widget _buildSizeSlider({
-    required String label,
-    required double value,
-    required double max,
-    required ValueChanged<double> onChanged,
-    required ValueChanged<double> onChangeEnd,
-  }) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 56,
-          child: Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-        ),
-        Expanded(
-          child: Slider(
-            value: value.clamp(_minSize, max).toDouble(),
-            min: _minSize,
-            max: max,
-            divisions: ((max - _minSize) / 50).round().clamp(1, 20).toInt(),
-            label: value.round().toString(),
-            onChanged: onChanged,
-            onChangeEnd: onChangeEnd,
-          ),
-        ),
-        SizedBox(
-          width: 44,
-          child: Text(value.round().toString(), textAlign: TextAlign.end),
-        ),
-      ],
-    );
-  }
-
-  void _updateTerraceSize(BuildContext context) {
-    context.read<TerraceBloc>().add(
-      UpdateTerraceSize(
-        widget.terrace.id,
-        _width.clamp(_minSize, _maxWidth).toDouble(),
-        _height.clamp(_minSize, _maxHeight).toDouble(),
-      ),
-    );
-  }
-
-  double get _maxWidth =>
-      widget.canvasSize.width.clamp(_minSize, double.infinity).toDouble();
-
-  double get _maxHeight =>
-      widget.canvasSize.height.clamp(_minSize, double.infinity).toDouble();
 
   Widget _buildFeatureIcon(IconData icon, String label) {
     return Row(

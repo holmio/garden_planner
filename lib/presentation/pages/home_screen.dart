@@ -5,12 +5,12 @@ import 'package:uuid/uuid.dart';
 import '../../../domain/entities/terrace.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
-import '../bloc/terrace/terrace_bloc.dart';
-import '../bloc/terrace/terrace_event.dart';
-import '../bloc/terrace/terrace_state.dart';
+import '../bloc/garden/garden_bloc.dart';
+import '../bloc/garden/garden_event.dart';
+import '../bloc/garden/garden_state.dart';
 import '../widgets/garden_load_error.dart';
 import '../widgets/home_app_bar.dart';
-import '../widgets/terrace_canvas.dart';
+import '../widgets/garden_canvas.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -31,14 +31,14 @@ class HomeScreen extends StatelessWidget {
             );
           },
         ),
-        BlocListener<TerraceBloc, TerraceState>(
+        BlocListener<GardenBloc, GardenState>(
           listenWhen: (previous, current) =>
-              current is TerraceLoaded &&
+              current is GardenLoaded &&
               current.errorMessage != null &&
               current.errorMessage !=
-                  (previous is TerraceLoaded ? previous.errorMessage : null),
+                  (previous is GardenLoaded ? previous.errorMessage : null),
           listener: (context, state) {
-            final error = (state as TerraceLoaded).errorMessage;
+            final error = (state as GardenLoaded).errorMessage;
             if (error == null) return;
 
             _showSnackBar(
@@ -48,11 +48,11 @@ class HomeScreen extends StatelessWidget {
             );
           },
         ),
-        BlocListener<TerraceBloc, TerraceState>(
+        BlocListener<GardenBloc, GardenState>(
           listenWhen: (previous, current) =>
-              previous is TerraceLoaded &&
+              previous is GardenLoaded &&
               previous.isSaving &&
-              current is TerraceLoaded &&
+              current is GardenLoaded &&
               !current.isSaving &&
               !current.hasUnsavedChanges &&
               current.errorMessage == null,
@@ -86,7 +86,7 @@ class HomeScreen extends StatelessWidget {
       width: 150,
       height: 100,
     );
-    context.read<TerraceBloc>().add(AddTerrace(newTerrace));
+    context.read<GardenBloc>().add(AddTerrace(newTerrace));
   }
 
   void _showSnackBar(
@@ -105,19 +105,16 @@ class _GardenBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TerraceBloc, TerraceState>(
+    return BlocBuilder<GardenBloc, GardenState>(
       builder: (context, state) {
-        if (state is TerraceLoading) {
+        if (state is GardenLoading) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (state is TerraceError) {
+        if (state is GardenError) {
           return GardenLoadError(message: state.message);
         }
-        if (state is TerraceLoaded) {
-          return TerraceCanvas(
-            terraces: state.terraces,
-            gardenSize: state.gardenSize,
-          );
+        if (state is GardenLoaded) {
+          return GardenCanvas(garden: state.garden);
         }
 
         return const SizedBox.shrink();

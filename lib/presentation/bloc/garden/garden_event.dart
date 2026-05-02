@@ -1,21 +1,21 @@
 import 'package:equatable/equatable.dart';
 import '../../../domain/entities/terrace.dart';
 
-abstract class TerraceEvent extends Equatable {
+abstract class GardenEvent extends Equatable {
   @override
   List<Object?> get props => [];
 }
 
-class LoadTerraces extends TerraceEvent {}
+class LoadGarden extends GardenEvent {}
 
-class AddTerrace extends TerraceEvent {
+class AddTerrace extends GardenEvent {
   final Terrace terrace;
   AddTerrace(this.terrace);
   @override
   List<Object?> get props => [terrace];
 }
 
-class UpdateTerracePosition extends TerraceEvent {
+class UpdateTerracePosition extends GardenEvent {
   final String id;
   final double x;
   final double y;
@@ -24,7 +24,7 @@ class UpdateTerracePosition extends TerraceEvent {
   List<Object?> get props => [id, x, y];
 }
 
-class UpdateTerraceSize extends TerraceEvent {
+class UpdateTerraceSize extends GardenEvent {
   final String id;
   final double width;
   final double height;
@@ -33,7 +33,7 @@ class UpdateTerraceSize extends TerraceEvent {
   List<Object?> get props => [id, width, height];
 }
 
-class UpdateGardenSize extends TerraceEvent {
+class UpdateGardenSize extends GardenEvent {
   final double width;
   final double height;
   UpdateGardenSize(this.width, this.height);
@@ -41,6 +41,6 @@ class UpdateGardenSize extends TerraceEvent {
   List<Object?> get props => [width, height];
 }
 
-class SaveLayout extends TerraceEvent {}
+class SaveGarden extends GardenEvent {}
 
-class ResetLayout extends TerraceEvent {}
+class ResetGarden extends GardenEvent {}

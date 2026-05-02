@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../bloc/terrace/terrace_bloc.dart';
-import '../bloc/terrace/terrace_event.dart';
+import '../bloc/garden/garden_bloc.dart';
+import '../bloc/garden/garden_event.dart';
 
 class GardenLoadError extends StatelessWidget {
   final String message;
@@ -26,7 +26,7 @@ class GardenLoadError extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
-              onPressed: () => context.read<TerraceBloc>().add(LoadTerraces()),
+              onPressed: () => context.read<GardenBloc>().add(LoadGarden()),
               icon: const Icon(Icons.refresh),
               label: const Text('Try again'),
             ),

@@ -5,17 +5,17 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 
 import 'domain/repositories/auth_repository.dart';
-import 'domain/repositories/terrace_repository.dart';
+import 'domain/repositories/garden_repository.dart';
 import 'data/datasources/firebase_auth_datasource.dart';
-import 'data/datasources/firestore_datasource.dart';
+import 'data/datasources/firestore_garden_datasource.dart';
 import 'data/repositories/firebase_auth_repository_impl.dart';
-import 'data/repositories/firebase_terrace_repository_impl.dart';
+import 'data/repositories/firebase_garden_repository_impl.dart';
 
 import 'presentation/bloc/auth/auth_bloc.dart';
 import 'presentation/bloc/auth/auth_event.dart';
 import 'presentation/bloc/auth/auth_state.dart';
-import 'presentation/bloc/terrace/terrace_bloc.dart';
-import 'presentation/bloc/terrace/terrace_event.dart';
+import 'presentation/bloc/garden/garden_bloc.dart';
+import 'presentation/bloc/garden/garden_event.dart';
 import 'presentation/pages/home_screen.dart';
 import 'presentation/pages/login_screen.dart';
 import 'core/theme/app_theme.dart';
@@ -39,9 +39,9 @@ class GardenPlannerApp extends StatelessWidget {
             authDataSource: FirebaseAuthDataSource(),
           ),
         ),
-        RepositoryProvider<TerraceRepository>(
-          create: (context) => FirebaseTerraceRepositoryImpl(
-            firestoreDataSource: FirestoreDataSource(),
+        RepositoryProvider<GardenRepository>(
+          create: (context) => FirebaseGardenRepositoryImpl(
+            gardenDataSource: FirestoreGardenDataSource(),
           ),
         ),
       ],
@@ -53,8 +53,8 @@ class GardenPlannerApp extends StatelessWidget {
                   ..add(CheckAuthStatusEvent()),
           ),
           BlocProvider(
-            create: (context) => TerraceBloc(
-              terraceRepository: context.read<TerraceRepository>(),
+            create: (context) => GardenBloc(
+              gardenRepository: context.read<GardenRepository>(),
               authRepository: context.read<AuthRepository>(),
             ),
           ),
@@ -65,7 +65,7 @@ class GardenPlannerApp extends StatelessWidget {
           home: BlocConsumer<AuthBloc, AuthState>(
             listener: (context, state) {
               if (state is Authenticated) {
-                context.read<TerraceBloc>().add(LoadTerraces());
+                context.read<GardenBloc>().add(LoadGarden());
               }
             },
             builder: (context, state) {

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/terrace.dart';
-import '../bloc/terrace/terrace_bloc.dart';
-import '../bloc/terrace/terrace_event.dart';
+import '../bloc/garden/garden_bloc.dart';
+import '../bloc/garden/garden_event.dart';
 import '../pages/terrace_detail_sheet.dart';
 
 class DraggableTerrace extends StatefulWidget {
@@ -76,7 +76,7 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
             _position = snappedPosition;
           });
 
-          context.read<TerraceBloc>().add(
+          context.read<GardenBloc>().add(
             UpdateTerracePosition(
               widget.terrace.id,
               snappedPosition.dx,
@@ -89,10 +89,7 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
             context: context,
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
-            builder: (context) => TerraceDetailSheet(
-              terrace: widget.terrace,
-              canvasSize: widget.canvasSize,
-            ),
+            builder: (context) => TerraceDetailSheet(terrace: widget.terrace),
           );
         },
         child: Container(
@@ -146,7 +143,7 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
                       _position = _clampPosition(_position, _size);
                     });
 
-                    context.read<TerraceBloc>().add(
+                    context.read<GardenBloc>().add(
                       UpdateTerraceSize(
                         widget.terrace.id,
                         _size.width,

@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_event.dart';
-import '../bloc/terrace/terrace_bloc.dart';
-import '../bloc/terrace/terrace_event.dart';
-import '../bloc/terrace/terrace_state.dart';
+import '../bloc/garden/garden_bloc.dart';
+import '../bloc/garden/garden_event.dart';
+import '../bloc/garden/garden_state.dart';
 import '../pages/history_screen.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -46,9 +46,9 @@ class _LayoutActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TerraceBloc, TerraceState>(
+    return BlocBuilder<GardenBloc, GardenState>(
       builder: (context, state) {
-        if (state is! TerraceLoaded || !state.hasUnsavedChanges) {
+        if (state is! GardenLoaded || !state.hasUnsavedChanges) {
           return const SizedBox.shrink();
         }
 
@@ -57,14 +57,14 @@ class _LayoutActions extends StatelessWidget {
             TextButton.icon(
               onPressed: state.isSaving
                   ? null
-                  : () => context.read<TerraceBloc>().add(ResetLayout()),
+                  : () => context.read<GardenBloc>().add(ResetGarden()),
               icon: const Icon(Icons.undo, color: Colors.white),
               label: const Text('Reset', style: TextStyle(color: Colors.white)),
             ),
             TextButton.icon(
               onPressed: state.isSaving
                   ? null
-                  : () => context.read<TerraceBloc>().add(SaveLayout()),
+                  : () => context.read<GardenBloc>().add(SaveGarden()),
               icon: state.isSaving
                   ? const SizedBox(
                       width: 18,

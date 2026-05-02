@@ -1,42 +1,37 @@
 import 'package:equatable/equatable.dart';
-import '../../../domain/entities/garden_size.dart';
-import '../../../domain/entities/terrace.dart';
+import '../../../domain/entities/garden.dart';
 
-abstract class TerraceState extends Equatable {
+abstract class GardenState extends Equatable {
   @override
   List<Object?> get props => [];
 }
 
-class TerraceInitial extends TerraceState {}
+class GardenInitial extends GardenState {}
 
-class TerraceLoading extends TerraceState {}
+class GardenLoading extends GardenState {}
 
-class TerraceLoaded extends TerraceState {
-  final List<Terrace> terraces;
-  final GardenSize gardenSize;
+class GardenLoaded extends GardenState {
+  final Garden garden;
   final bool hasUnsavedChanges;
   final bool isSaving;
   final String? errorMessage;
 
-  TerraceLoaded(
-    this.terraces, {
-    this.gardenSize = GardenSize.defaultSize,
+  GardenLoaded({
+    this.garden = const Garden(),
     this.hasUnsavedChanges = false,
     this.isSaving = false,
     this.errorMessage,
   });
 
-  TerraceLoaded copyWith({
-    List<Terrace>? terraces,
-    GardenSize? gardenSize,
+  GardenLoaded copyWith({
+    Garden? garden,
     bool? hasUnsavedChanges,
     bool? isSaving,
     String? errorMessage,
     bool clearError = false,
   }) {
-    return TerraceLoaded(
-      terraces ?? this.terraces,
-      gardenSize: gardenSize ?? this.gardenSize,
+    return GardenLoaded(
+      garden: garden ?? this.garden,
       hasUnsavedChanges: hasUnsavedChanges ?? this.hasUnsavedChanges,
       isSaving: isSaving ?? this.isSaving,
       errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
@@ -45,17 +40,16 @@ class TerraceLoaded extends TerraceState {
 
   @override
   List<Object?> get props => [
-    terraces,
-    gardenSize,
+    garden,
     hasUnsavedChanges,
     isSaving,
     errorMessage,
   ];
 }
 
-class TerraceError extends TerraceState {
+class GardenError extends GardenState {
   final String message;
-  TerraceError(this.message);
+  GardenError(this.message);
 
   @override
   List<Object?> get props => [message];
