@@ -17,6 +17,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return MultiBlocListener(
       listeners: [
         BlocListener<AuthBloc, AuthState>(
@@ -27,7 +29,7 @@ class HomeScreen extends StatelessWidget {
             _showSnackBar(
               context,
               message: error.message,
-              backgroundColor: Colors.red.shade700,
+              backgroundColor: colors.error,
             );
           },
         ),
@@ -44,7 +46,7 @@ class HomeScreen extends StatelessWidget {
             _showSnackBar(
               context,
               message: error,
-              backgroundColor: Colors.red.shade700,
+              backgroundColor: colors.error,
             );
           },
         ),
@@ -60,7 +62,7 @@ class HomeScreen extends StatelessWidget {
             _showSnackBar(
               context,
               message: 'Garden saved.',
-              backgroundColor: Colors.green.shade700,
+              backgroundColor: colors.primary,
             );
           },
         ),
@@ -70,7 +72,6 @@ class HomeScreen extends StatelessWidget {
         body: const _GardenBody(),
         floatingActionButton: FloatingActionButton(
           onPressed: () => _addTerrace(context),
-          backgroundColor: Colors.green,
           child: const Icon(Icons.add),
         ),
       ),

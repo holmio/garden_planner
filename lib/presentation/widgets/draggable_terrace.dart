@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/theme/app_theme_extension.dart';
 import '../../domain/entities/terrace.dart';
 import '../bloc/garden/garden_bloc.dart';
 import '../bloc/garden/garden_event.dart';
@@ -60,6 +61,9 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final appTheme = Theme.of(context).extension<AppThemeExtension>()!;
+
     return Positioned(
       left: _position.dx,
       top: _position.dy,
@@ -88,7 +92,6 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            backgroundColor: Colors.transparent,
             builder: (context) => TerraceDetailSheet(terrace: widget.terrace),
           );
         },
@@ -96,12 +99,12 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
           width: _size.width,
           height: _size.height,
           decoration: BoxDecoration(
-            color: Colors.green.shade400,
-            border: Border.all(color: Colors.green.shade900, width: 2),
+            color: appTheme.terraceFill,
+            border: Border.all(color: appTheme.terraceBorder, width: 2),
             borderRadius: BorderRadius.circular(8),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Colors.black26,
+                color: colors.shadow.withValues(alpha: 0.24),
                 blurRadius: 4,
                 offset: Offset(2, 2),
               ),
@@ -113,8 +116,8 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
                 child: Text(
                   '${widget.terrace.name}\n${widget.terrace.sunExposure ?? ''}',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: colors.onPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -155,16 +158,16 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: colors.surface.withValues(alpha: 0.7),
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(8),
                         bottomRight: Radius.circular(6),
                       ),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.open_in_full,
                       size: 14,
-                      color: Colors.black,
+                      color: colors.onSurface,
                     ),
                   ),
                 ),

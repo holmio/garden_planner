@@ -18,7 +18,6 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       title: const Text('My Garden'),
-      backgroundColor: Colors.green,
       actions: [
         const _LayoutActions(),
         IconButton(
@@ -48,6 +47,8 @@ class _LayoutActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<GardenBloc, GardenState>(
       builder: (context, state) {
+        final colors = Theme.of(context).colorScheme;
+
         if (state is! GardenLoaded || !state.hasUnsavedChanges) {
           return const SizedBox.shrink();
         }
@@ -58,26 +59,26 @@ class _LayoutActions extends StatelessWidget {
               onPressed: state.isSaving
                   ? null
                   : () => context.read<GardenBloc>().add(ResetGarden()),
-              icon: const Icon(Icons.undo, color: Colors.white),
-              label: const Text('Reset', style: TextStyle(color: Colors.white)),
+              icon: Icon(Icons.undo, color: colors.onPrimary),
+              label: Text('Reset', style: TextStyle(color: colors.onPrimary)),
             ),
             TextButton.icon(
               onPressed: state.isSaving
                   ? null
                   : () => context.read<GardenBloc>().add(SaveGarden()),
               icon: state.isSaving
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.white,
+                        color: colors.onPrimary,
                       ),
                     )
-                  : const Icon(Icons.save, color: Colors.white),
+                  : Icon(Icons.save, color: colors.onPrimary),
               label: Text(
                 state.isSaving ? 'Saving' : 'Save',
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: colors.onPrimary),
               ),
             ),
           ],

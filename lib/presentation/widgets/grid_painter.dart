@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
 class GridPainter extends CustomPainter {
+  final Color color;
+
+  const GridPainter({required this.color});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.brown.shade300
+      ..color = color
       ..strokeWidth = 1;
 
     const double step = 50;
@@ -18,5 +22,6 @@ class GridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant GridPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

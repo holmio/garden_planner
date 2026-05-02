@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/datasources/plant_api_service.dart';
+import '../../core/theme/app_spacing.dart';
 
 class PlantSearchScreen extends StatefulWidget {
   const PlantSearchScreen({super.key});
@@ -26,15 +27,15 @@ class _PlantSearchScreenState extends State<PlantSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Search Plant Database'),
-        backgroundColor: Colors.green,
-      ),
+      appBar: AppBar(title: const Text('Search Plant Database')),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: Row(
               children: [
                 Expanded(
@@ -47,20 +48,19 @@ class _PlantSearchScreenState extends State<PlantSearchScreen> {
                     onSubmitted: (_) => _search(),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 ElevatedButton(
                   onPressed: _search,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                   ),
-                  child: const Icon(Icons.search, color: Colors.white),
+                  child: Icon(Icons.search, color: colors.onPrimary),
                 ),
               ],
             ),
           ),
           if (_isLoading)
-            const Expanded(child: Center(child: CircularProgressIndicator(color: Colors.green)))
+            const Expanded(child: Center(child: CircularProgressIndicator()))
           else
             Expanded(
               child: ListView.builder(
@@ -68,12 +68,34 @@ class _PlantSearchScreenState extends State<PlantSearchScreen> {
                 itemBuilder: (context, index) {
                   final plant = _results[index];
                   return ListTile(
-                    leading: plant['main_image_path'] != null && plant['main_image_path'].toString().startsWith('http')
-                        ? Image.network(plant['main_image_path'], width: 50, height: 50, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => const Icon(Icons.local_florist, color: Colors.green))
-                        : const Icon(Icons.local_florist, color: Colors.green),
-                    title: Text(plant['name'] ?? 'Unknown Plant', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(plant['description'] ?? 'No description available.', maxLines: 2, overflow: TextOverflow.ellipsis),
-                    trailing: const Icon(Icons.add_circle, color: Colors.green),
+                    leading:
+                        plant['main_image_path'] != null &&
+                            plant['main_image_path'].toString().startsWith(
+                              'http',
+                            )
+                        ? Image.network(
+                            plant['main_image_path'],
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.local_florist,
+                              color: colors.primary,
+                            ),
+                          )
+                        : Icon(Icons.local_florist, color: colors.primary),
+                    title: Text(
+                      plant['name'] ?? 'Unknown Plant',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      plant['description'] ?? 'No description available.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: Icon(Icons.add_circle, color: colors.primary),
                     onTap: () {
                       Navigator.pop(context, plant['name']);
                     },

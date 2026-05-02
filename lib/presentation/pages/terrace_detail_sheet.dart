@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../domain/entities/terrace.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_theme_extension.dart';
 import 'plant_search_screen.dart';
 
 class TerraceDetailSheet extends StatefulWidget {
@@ -14,12 +16,16 @@ class TerraceDetailSheet extends StatefulWidget {
 class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final appTheme = theme.extension<AppThemeExtension>()!;
+
     return SingleChildScrollView(
       child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: appTheme.surfaceContainer,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,11 +37,7 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
                 Flexible(
                   child: Text(
                     widget.terrace.name,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
+                    style: theme.textTheme.headlineMedium,
                   ),
                 ),
                 IconButton(
@@ -44,46 +46,45 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
             Row(
               children: [
                 _buildFeatureIcon(
+                  context,
                   Icons.wb_sunny,
                   widget.terrace.sunExposure ?? 'Unknown Sun',
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: AppSpacing.md),
                 _buildFeatureIcon(
+                  context,
                   Icons.water_drop,
                   widget.terrace.irrigationType ?? 'No Irrigation',
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-            const Text(
-              'Current Crops',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.lg),
+            Text('Current Crops', style: theme.textTheme.titleMedium),
+            const SizedBox(height: AppSpacing.sm + AppSpacing.xs),
             ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Colors.red,
-                child: Icon(Icons.local_florist, color: Colors.white),
+              leading: CircleAvatar(
+                backgroundColor: colors.error,
+                child: Icon(Icons.local_florist, color: colors.onError),
               ),
               title: const Text('Tomatoes'),
               subtitle: const Text('Harvest in 20 days'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {},
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.add),
                 label: const Text('Plant a new Crop'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppSpacing.sm + AppSpacing.xs,
+                  ),
                 ),
                 onPressed: () async {
                   final selectedPlant = await Navigator.push(
@@ -97,7 +98,7 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Successfully planted $selectedPlant!'),
-                        backgroundColor: Colors.green.shade700,
+                        backgroundColor: appTheme.successText,
                       ),
                     );
                   }
@@ -110,12 +111,18 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
     );
   }
 
-  Widget _buildFeatureIcon(IconData icon, String label) {
+  Widget _buildFeatureIcon(BuildContext context, IconData icon, String label) {
+    final appTheme = Theme.of(context).extension<AppThemeExtension>()!;
+    final textTheme = Theme.of(context).textTheme;
+
     return Row(
       children: [
-        Icon(icon, color: Colors.brown.shade400, size: 20),
-        const SizedBox(width: 4),
-        Text(label, style: TextStyle(color: Colors.brown.shade700)),
+        Icon(icon, color: appTheme.gardenGrid, size: 20),
+        const SizedBox(width: AppSpacing.xs),
+        Text(
+          label,
+          style: textTheme.bodyMedium?.copyWith(color: appTheme.gardenBorder),
+        ),
       ],
     );
   }

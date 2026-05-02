@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/theme/app_spacing.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_event.dart';
 
@@ -10,53 +11,49 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.green.shade50,
+      backgroundColor: colors.primaryContainer,
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(32.0),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.yard, size: 100, color: Colors.green),
-              const SizedBox(height: 24),
-              const Text(
-                'Garden Planner',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
-                ),
-              ),
-              const SizedBox(height: 48),
+              Icon(Icons.yard, size: 100, color: colors.primary),
+              const SizedBox(height: AppSpacing.lg),
+              Text('Garden Planner', style: theme.textTheme.headlineMedium),
+              const SizedBox(height: AppSpacing.xxl),
               if (errorMessage != null) ...[
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.sm + AppSpacing.xs),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    border: Border.all(color: Colors.red.shade200),
+                    color: colors.errorContainer,
+                    border: Border.all(color: colors.error),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     errorMessage!,
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.red.shade800),
+                    style: TextStyle(color: colors.onErrorContainer),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
               ],
               ElevatedButton.icon(
                 icon: const Icon(Icons.login),
                 label: const Text('Sign in with Google'),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.sm + AppSpacing.xs,
                   ),
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.green.shade800,
-                  textStyle: const TextStyle(fontSize: 18),
+                  backgroundColor: colors.surface,
+                  foregroundColor: colors.primary,
+                  textStyle: theme.textTheme.titleMedium,
                 ),
                 onPressed: () {
                   context.read<AuthBloc>().add(SignInWithGoogleEvent());

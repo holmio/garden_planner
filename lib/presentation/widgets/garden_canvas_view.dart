@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_theme_extension.dart';
 import '../../domain/entities/garden.dart';
 import 'draggable_terrace.dart';
 import 'grid_painter.dart';
@@ -28,6 +29,8 @@ class _GardenCanvasViewState extends State<GardenCanvasView> {
 
   @override
   Widget build(BuildContext context) {
+    final appTheme = Theme.of(context).extension<AppThemeExtension>()!;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final viewportSize = Size(constraints.maxWidth, constraints.maxHeight);
@@ -44,12 +47,16 @@ class _GardenCanvasViewState extends State<GardenCanvasView> {
             width: gardenSize.width,
             height: gardenSize.height,
             decoration: BoxDecoration(
-              color: Colors.brown.shade200,
-              border: Border.all(color: Colors.brown.shade800, width: 4),
+              color: appTheme.gardenSurface,
+              border: Border.all(color: appTheme.gardenBorder, width: 4),
             ),
             child: Stack(
               children: [
-                Positioned.fill(child: CustomPaint(painter: GridPainter())),
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: GridPainter(color: appTheme.gardenGrid),
+                  ),
+                ),
                 ...widget.garden.terraces.map(
                   (terrace) => DraggableTerrace(
                     key: ValueKey(terrace.id),
@@ -79,8 +86,8 @@ class _GardenCanvasViewState extends State<GardenCanvasView> {
     final left = (viewportSize.width - gardenSize.width * fittedScale) / 2;
 
     _transformationController.value = Matrix4.identity()
-      ..translate(left, 0.0)
-      ..scale(fittedScale);
+      ..translateByDouble(left, 0.0, 0.0, 1.0)
+      ..scaleByDouble(fittedScale, fittedScale, fittedScale, 1.0);
   }
 
   Size get _canvasSize =>

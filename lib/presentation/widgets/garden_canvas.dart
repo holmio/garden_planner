@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../core/theme/app_theme_extension.dart';
 import '../../domain/entities/garden.dart';
 import '../../domain/entities/garden_size.dart';
 import '../bloc/garden/garden_bloc.dart';
@@ -15,6 +16,9 @@ class GardenCanvas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appTheme = theme.extension<AppThemeExtension>()!;
+
     return Stack(
       children: [
         GardenCanvasView(garden: garden),
@@ -22,13 +26,13 @@ class GardenCanvas extends StatelessWidget {
           top: 12,
           right: 12,
           child: Material(
-            color: Colors.white.withValues(alpha: 0.9),
+            color: theme.colorScheme.surface.withValues(alpha: 0.9),
             shape: const CircleBorder(),
             elevation: 3,
             child: IconButton(
               tooltip: 'Garden size',
               icon: const Icon(Icons.aspect_ratio),
-              color: Colors.brown,
+              color: appTheme.gardenBorder,
               onPressed: () => _showGardenSizeSheet(context),
             ),
           ),

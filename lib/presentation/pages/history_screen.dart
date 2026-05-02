@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_spacing.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
@@ -6,57 +7,71 @@ class HistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Garden History'),
-        backgroundColor: Colors.green,
-      ),
+      appBar: AppBar(title: const Text('Garden History')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          _buildYearCard(context, '2025', 'Great tomato yield, struggled with carrots due to soil type.', 120),
-          _buildYearCard(context, '2024', 'First year! Planted basic herbs and learned about sun exposure.', 45),
+          _buildYearCard(
+            context,
+            '2025',
+            'Great tomato yield, struggled with carrots due to soil type.',
+            120,
+          ),
+          _buildYearCard(
+            context,
+            '2024',
+            'First year! Planted basic herbs and learned about sun exposure.',
+            45,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildYearCard(BuildContext context, String year, String summary, int totalCrops) {
+  Widget _buildYearCard(
+    BuildContext context,
+    String year,
+    String summary,
+    int totalCrops,
+  ) {
+    final theme = Theme.of(context);
+
     return Card(
-      elevation: 4,
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
-        title: Text(
-          'Season $year',
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green),
-        ),
+        title: Text('Season $year', style: theme.textTheme.titleLarge),
         subtitle: Text('$totalCrops crops harvested'),
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Season Notes:', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Text(summary, style: TextStyle(color: Colors.grey.shade800)),
-                const SizedBox(height: 16),
+                Text(
+                  'Season Notes:',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(summary, style: theme.textTheme.bodyMedium),
+                const SizedBox(height: AppSpacing.md),
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.photo_library),
                     label: const Text('View Photo Diary'),
-                    style: OutlinedButton.styleFrom(foregroundColor: Colors.green),
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Photo Diary coming soon!')),
+                        const SnackBar(
+                          content: Text('Photo Diary coming soon!'),
+                        ),
                       );
                     },
                   ),
-                )
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

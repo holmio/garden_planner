@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_spacing.dart';
 import '../../domain/entities/garden_size.dart';
 
 class GardenSizeSheet extends StatefulWidget {
@@ -32,17 +33,21 @@ class _GardenSizeSheetState extends State<GardenSizeSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.lg,
+        AppSpacing.lg,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Garden size',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 12),
+          Text('Garden size', style: theme.textTheme.titleMedium),
+          const SizedBox(height: AppSpacing.sm + AppSpacing.xs),
           _GardenSizeSlider(
             label: 'Width',
             value: _width,
@@ -53,7 +58,7 @@ class _GardenSizeSheetState extends State<GardenSizeSheet> {
             value: _height,
             onChanged: (value) => _updateSize(height: value),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton.icon(
@@ -103,7 +108,9 @@ class _GardenSizeSlider extends StatelessWidget {
           width: 56,
           child: Text(
             label,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
         ),
         Expanded(
