@@ -7,8 +7,13 @@ import 'plant_search_screen.dart';
 
 class TerraceDetailSheet extends StatefulWidget {
   final Terrace terrace;
+  final Size canvasSize;
 
-  const TerraceDetailSheet({super.key, required this.terrace});
+  const TerraceDetailSheet({
+    super.key,
+    required this.terrace,
+    required this.canvasSize,
+  });
 
   @override
   State<TerraceDetailSheet> createState() => _TerraceDetailSheetState();
@@ -16,7 +21,6 @@ class TerraceDetailSheet extends StatefulWidget {
 
 class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
   static const double _minSize = 50;
-  static const double _maxSize = 600;
 
   late double _width;
   late double _height;
@@ -83,12 +87,14 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
             _buildSizeSlider(
               label: 'Width',
               value: _width,
+              max: _maxWidth,
               onChanged: (value) => setState(() => _width = value),
               onChangeEnd: (_) => _updateTerraceSize(context),
             ),
             _buildSizeSlider(
               label: 'Height',
               value: _height,
+              max: _maxHeight,
               onChanged: (value) => setState(() => _height = value),
               onChangeEnd: (_) => _updateTerraceSize(context),
             ),
@@ -147,6 +153,7 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
   Widget _buildSizeSlider({
     required String label,
     required double value,
+    required double max,
     required ValueChanged<double> onChanged,
     required ValueChanged<double> onChangeEnd,
   }) {
@@ -161,10 +168,10 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
         ),
         Expanded(
           child: Slider(
-            value: value.clamp(_minSize, _maxSize),
+            value: value.clamp(_minSize, max).toDouble(),
             min: _minSize,
-            max: _maxSize,
-            divisions: 11,
+            max: max,
+            divisions: ((max - _minSize) / 50).round().clamp(1, 20).toInt(),
             label: value.round().toString(),
             onChanged: onChanged,
             onChangeEnd: onChangeEnd,
@@ -180,9 +187,19 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
 
   void _updateTerraceSize(BuildContext context) {
     context.read<TerraceBloc>().add(
-      UpdateTerraceSize(widget.terrace.id, _width, _height),
+      UpdateTerraceSize(
+        widget.terrace.id,
+        _width.clamp(_minSize, _maxWidth).toDouble(),
+        _height.clamp(_minSize, _maxHeight).toDouble(),
+      ),
     );
   }
+
+  double get _maxWidth =>
+      widget.canvasSize.width.clamp(_minSize, double.infinity).toDouble();
+
+  double get _maxHeight =>
+      widget.canvasSize.height.clamp(_minSize, double.infinity).toDouble();
 
   Widget _buildFeatureIcon(IconData icon, String label) {
     return Row(

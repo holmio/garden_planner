@@ -114,7 +114,10 @@ class _GardenBody extends StatelessWidget {
           return GardenLoadError(message: state.message);
         }
         if (state is TerraceLoaded) {
-          return TerraceCanvas(terraces: state.terraces);
+          return TerraceCanvas(
+            terraces: state.terraces,
+            gardenSize: state.gardenSize,
+          );
         }
 
         return const SizedBox.shrink();

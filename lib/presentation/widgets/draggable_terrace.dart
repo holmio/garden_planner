@@ -8,8 +8,13 @@ import '../pages/terrace_detail_sheet.dart';
 
 class DraggableTerrace extends StatefulWidget {
   final Terrace terrace;
+  final Size canvasSize;
 
-  const DraggableTerrace({super.key, required this.terrace});
+  const DraggableTerrace({
+    super.key,
+    required this.terrace,
+    required this.canvasSize,
+  });
 
   @override
   State<DraggableTerrace> createState() => _DraggableTerraceState();
@@ -18,7 +23,6 @@ class DraggableTerrace extends StatefulWidget {
 class _DraggableTerraceState extends State<DraggableTerrace> {
   static const double _gridSize = 50;
   static const double _minSize = 50;
-  static const double _maxSize = 600;
 
   late Offset _position;
   late Size _size;
@@ -26,8 +30,11 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
   @override
   void initState() {
     super.initState();
-    _position = Offset(widget.terrace.x, widget.terrace.y);
-    _size = Size(widget.terrace.width, widget.terrace.height);
+    _size = _clampSize(Size(widget.terrace.width, widget.terrace.height));
+    _position = _clampPosition(
+      Offset(widget.terrace.x, widget.terrace.y),
+      _size,
+    );
   }
 
   @override
@@ -35,11 +42,19 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.terrace.x != widget.terrace.x ||
         oldWidget.terrace.y != widget.terrace.y) {
-      _position = Offset(widget.terrace.x, widget.terrace.y);
+      _position = _clampPosition(
+        Offset(widget.terrace.x, widget.terrace.y),
+        _size,
+      );
     }
     if (oldWidget.terrace.width != widget.terrace.width ||
         oldWidget.terrace.height != widget.terrace.height) {
-      _size = Size(widget.terrace.width, widget.terrace.height);
+      _size = _clampSize(Size(widget.terrace.width, widget.terrace.height));
+      _position = _clampPosition(_position, _size);
+    }
+    if (oldWidget.canvasSize != widget.canvasSize) {
+      _size = _clampSize(_size);
+      _position = _clampPosition(_position, _size);
     }
   }
 
@@ -51,14 +66,11 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
       child: GestureDetector(
         onPanUpdate: (details) {
           setState(() {
-            _position += details.delta;
+            _position = _clampPosition(_position + details.delta, _size);
           });
         },
         onPanEnd: (details) {
-          final snappedPosition = Offset(
-            (_position.dx / _gridSize).round() * _gridSize,
-            (_position.dy / _gridSize).round() * _gridSize,
-          );
+          final snappedPosition = _clampPosition(_snapOffset(_position), _size);
 
           setState(() {
             _position = snappedPosition;
@@ -77,7 +89,10 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
             context: context,
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
-            builder: (context) => TerraceDetailSheet(terrace: widget.terrace),
+            builder: (context) => TerraceDetailSheet(
+              terrace: widget.terrace,
+              canvasSize: widget.canvasSize,
+            ),
           );
         },
         child: Container(
@@ -114,29 +129,21 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
                   behavior: HitTestBehavior.opaque,
                   onPanUpdate: (details) {
                     setState(() {
-                      _size = Size(
-                        (_size.width + details.delta.dx).clamp(
-                          _minSize,
-                          _maxSize,
-                        ),
-                        (_size.height + details.delta.dy).clamp(
-                          _minSize,
-                          _maxSize,
+                      _size = _clampSize(
+                        Size(
+                          _size.width + details.delta.dx,
+                          _size.height + details.delta.dy,
                         ),
                       );
+                      _position = _clampPosition(_position, _size);
                     });
                   },
                   onPanEnd: (details) {
-                    final snappedSize = Size(
-                      (_size.width / _gridSize).round() * _gridSize,
-                      (_size.height / _gridSize).round() * _gridSize,
-                    );
+                    final snappedSize = _clampSize(_snapSize(_size));
 
                     setState(() {
-                      _size = Size(
-                        snappedSize.width.clamp(_minSize, _maxSize),
-                        snappedSize.height.clamp(_minSize, _maxSize),
-                      );
+                      _size = snappedSize;
+                      _position = _clampPosition(_position, _size);
                     });
 
                     context.read<TerraceBloc>().add(
@@ -169,6 +176,46 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
           ),
         ),
       ),
+    );
+  }
+
+  Offset _snapOffset(Offset offset) {
+    return Offset(
+      (offset.dx / _gridSize).round() * _gridSize,
+      (offset.dy / _gridSize).round() * _gridSize,
+    );
+  }
+
+  Size _snapSize(Size size) {
+    return Size(
+      (size.width / _gridSize).round() * _gridSize,
+      (size.height / _gridSize).round() * _gridSize,
+    );
+  }
+
+  Offset _clampPosition(Offset position, Size terraceSize) {
+    final maxX = (widget.canvasSize.width - terraceSize.width).clamp(
+      0.0,
+      double.infinity,
+    );
+    final maxY = (widget.canvasSize.height - terraceSize.height).clamp(
+      0.0,
+      double.infinity,
+    );
+
+    return Offset(
+      position.dx.clamp(0.0, maxX).toDouble(),
+      position.dy.clamp(0.0, maxY).toDouble(),
+    );
+  }
+
+  Size _clampSize(Size size) {
+    final maxWidth = widget.canvasSize.width.clamp(_minSize, double.infinity);
+    final maxHeight = widget.canvasSize.height.clamp(_minSize, double.infinity);
+
+    return Size(
+      size.width.clamp(_minSize, maxWidth).toDouble(),
+      size.height.clamp(_minSize, maxHeight).toDouble(),
     );
   }
 }
