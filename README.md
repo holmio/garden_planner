@@ -23,8 +23,6 @@ Flutter app for planning garden terraces, authenticating users with Firebase/Goo
 
 ## TODOs (next steps)
 - Replace `test/widget_test.dart` default counter smoke test with tests that match current app behavior.
-- Confirm and complete GitHub authorization in Warp if you still want to use `oz environment create`.
-- Add robust error handling and user feedback for auth failures and Firestore write failures.
 - Implement non-placeholder history and terrace detail features (currently partially mock/placeholder).
 - Add CI checks for `flutter analyze` and `flutter test`.
 
