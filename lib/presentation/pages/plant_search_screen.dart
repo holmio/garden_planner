@@ -14,15 +14,37 @@ class _PlantSearchScreenState extends State<PlantSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _results = [];
   bool _isLoading = false;
+  String? _errorMessage;
 
   void _search() async {
-    if (_searchController.text.isEmpty) return;
-    setState(() => _isLoading = true);
-    final results = await _apiService.searchPlants(_searchController.text);
+    final query = _searchController.text.trim();
+    if (query.isEmpty) return;
     setState(() {
-      _results = results;
-      _isLoading = false;
+      _errorMessage = null;
+      _isLoading = true;
     });
+
+    try {
+      final results = await _apiService.searchPlants(query);
+      if (!mounted) return;
+      setState(() {
+        _results = results;
+        _isLoading = false;
+      });
+    } on PlantApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _results = [];
+        _errorMessage = error.message;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -61,6 +83,21 @@ class _PlantSearchScreenState extends State<PlantSearchScreen> {
           ),
           if (_isLoading)
             const Expanded(child: Center(child: CircularProgressIndicator()))
+          else if (_errorMessage != null)
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Text(
+                    _errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: colors.error,
+                    ),
+                  ),
+                ),
+              ),
+            )
           else
             Expanded(
               child: ListView.builder(
