@@ -1,69 +1,39 @@
 # AGENTS.md
 
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
-
-## Development commands
-- Install dependencies: `flutter pub get`
-- Verify active target device: `flutter devices`
-- If no device is active, list and launch an emulator:
-  - `flutter emulators`
-  - `flutter emulators --launch <emulator_id>`
+## Commands
+- Install deps: `flutter pub get`
+- Check devices: `flutter devices`
+- List / launch emulators: `flutter emulators`, `flutter emulators --launch <emulator_id>`
 - Run app: `flutter run`
-- Analyze: `flutter analyze`
+- Static analysis: `flutter analyze`
 - Run all tests: `flutter test`
-- Run one test file: `flutter test test/widget_test.dart`
-- Run one named test: `flutter test test/widget_test.dart --plain-name "Counter increments smoke test"`
+- Run the only currently reliable focused suite: `flutter test test/plant_api_service_test.dart`
 - Build Android APK: `flutter build apk`
-- Re-generate Firebase options when config/platform support changes: `flutterfire configure`
+- If Firebase targets/config change, regenerate `lib/firebase_options.dart`: `flutterfire configure`
 
-## Required runtime configuration
-- The app loads `.env` at startup (`lib/main.dart`) and reads Firebase values from `lib/firebase_options.dart`.
-- Ensure `.env` contains:
-  - `FIREBASE_API_KEY`
-  - `FIREBASE_APP_ID`
-  - `FIREBASE_MESSAGING_SENDER_ID`
-  - `FIREBASE_PROJECT_ID`
-  - `FIREBASE_STORAGE_BUCKET`
-- `DefaultFirebaseOptions.currentPlatform` is configured only for Android; other platforms currently throw `UnsupportedError`.
+## Runtime Setup
+- `lib/main.dart` always loads `.env` before Firebase init; `.env` is declared as a Flutter asset in `pubspec.yaml`.
+- Required `.env` keys for app startup on Android: `FIREBASE_API_KEY`, `FIREBASE_APP_ID`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_PROJECT_ID`, `FIREBASE_STORAGE_BUCKET`.
+- Plant search also needs `TREFLE_API_TOKEN`; missing it throws a `PlantApiException` from `PlantApiService`.
+- Google sign-in optionally reads `GOOGLE_SIGN_IN_SERVER_CLIENT_ID` from `.env`.
+- `DefaultFirebaseOptions.currentPlatform` only returns Android options. Web, desktop, and iOS currently throw `UnsupportedError`.
 
-## Architecture overview
-- The project follows a layered structure:
-  - `lib/presentation`: UI pages and BLoCs (state/event handling)
-  - `lib/domain`: core entities and repository interfaces
-  - `lib/data`: repository implementations, data sources, and models
-  - `lib/core/theme`: app theme tokens and styling
-- Dependency direction is intentionally one-way:
-  - `presentation` depends on `domain`.
-  - `data` implements `domain` repositories.
-  - `domain` stays framework/data-source independent.
+## Architecture
+- `lib/main.dart` is the composition root. It registers `AuthRepository` and `GardenRepository`, creates `AuthBloc` and `GardenBloc`, and dispatches `LoadGarden` after auth succeeds.
+- The current domain is `garden`, not the older `terrace`-only naming. Core layers are:
+  - `lib/presentation`: pages, widgets, BLoCs
+  - `lib/domain`: entities and repository interfaces
+  - `lib/data`: Firebase/Trefle datasources, models, repository implementations
+  - `lib/core/theme`: app theme tokens
+- `GardenBloc` keeps both `_savedGarden` and `_currentGarden`; `ResetGarden` restores the saved snapshot and `SaveGarden` is the only persistence path.
 
-## Startup and dependency wiring
-- `lib/main.dart` is the composition root:
-  - Initializes Flutter bindings, loads `.env`, initializes Firebase.
-  - Registers repositories with `MultiRepositoryProvider`.
-  - Registers `AuthBloc` and `TerraceBloc` with `MultiBlocProvider`.
-  - Routes to `LoginScreen` or `HomeScreen` from auth state.
+## Persistence And Integrations
+- Firestore now persists the default garden at `users/{userId}/gardens/{gardenId}` with terraces in the `terraces` subcollection.
+- `FirestoreGardenDataSource.getGarden()` still falls back to the legacy shape `users/{userId}/garden/settings` plus `users/{userId}/terraces` if the new garden document does not exist yet.
+- Plant search uses Trefle (`https://trefle.io/api/v1/...`), not OpenFarm.
+- `FirebaseAuthDataSource.signInWithGoogle()` is intentionally unimplemented; the real sign-in flow lives in `FirebaseAuthRepositoryImpl` via `GoogleSignIn.instance` and Firebase Auth.
 
-## State management flow
-- Auth flow:
-  - `AuthBloc` handles `CheckAuthStatusEvent`, `SignInWithGoogleEvent`, `SignOutEvent`.
-  - Uses `AuthRepository` (implemented by `FirebaseAuthRepositoryImpl`).
-- Terrace layout flow:
-  - `TerraceBloc` handles loading, adding terraces, drag updates, save/reset.
-  - Maintains both `_savedTerraces` and `_currentTerraces` to track unsaved edits.
-  - Persists only on `SaveLayout`; `ResetLayout` discards in-memory changes.
-
-## Data and external integrations
-- Firestore persistence:
-  - `FirestoreDataSource` reads/writes `users/{userId}/terraces`.
-  - `saveTerraces` writes each terrace document by terrace ID via batch set.
-- Plant lookup:
-  - `PlantApiService` calls OpenFarm (`https://openfarm.cc/api/v1/crops?filter=...`).
-  - `PlantSearchScreen` uses this directly (outside the auth/terrace repository abstraction).
-- Google sign-in:
-  - Implemented in `FirebaseAuthRepositoryImpl` using `google_sign_in` + Firebase credential sign-in.
-
-## Current implementation caveats to know before editing
-- `test/widget_test.dart` is still the default counter smoke test and does not match the current app behavior.
-- `FirebaseAuthDataSource.signInWithGoogle()` is intentionally unimplemented; production sign-in is handled in `FirebaseAuthRepositoryImpl`.
-- Several UI areas are placeholder/mock-oriented (for example history and parts of terrace details), so verify expected behavior before expanding those flows.
+## Testing Quirks
+- `flutter analyze` passes as of 2026-05-03.
+- `flutter test` currently fails because `test/widget_test.dart` is still the default counter test and pumps `GardenPlannerApp` without Firebase initialization.
+- `test/plant_api_service_test.dart` is the meaningful existing suite; use it for focused verification when touching plant search.
