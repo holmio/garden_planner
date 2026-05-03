@@ -37,3 +37,13 @@
 - `flutter analyze` passes as of 2026-05-03.
 - `flutter test` currently fails because `test/widget_test.dart` is still the default counter test and pumps `GardenPlannerApp` without Firebase initialization.
 - `test/plant_api_service_test.dart` is the meaningful existing suite; use it for focused verification when touching plant search.
+
+## Docs Maintenance
+- If a change affects project structure, app wiring, major directories, runtime flow, or core integrations, ask user whether README should be updated.
+- If user confirms structure/runtime docs should stay current, update `README.md` in same task before finishing.
+- After completing work, check `BACKLOG.md`. If delivered change matches an item there, remove that item from the backlog as part of the same task.
+- Do not remove backlog items for partial progress; only remove them when the implemented change fully satisfies the item.
+
+## Optional Response Mode
+- If user asks for `caveman` mode, check `.opencode\skills\caveman\SKILL.md` and follow its response-style rules manually.
+- If user says `stop caveman`, stop following that file and return to normal response style.

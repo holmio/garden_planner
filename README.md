@@ -1,14 +1,29 @@
 # Garden Planner
 
-Flutter app for planning garden terraces, authenticating users with Firebase/Google Sign-In, and persisting terrace layouts in Firestore.
+Flutter app for planning garden beds, authenticating users with Firebase/Google Sign-In, and persisting garden layouts in Firestore.
 
-## What has been done so far
-- Initial Flutter project scaffolded.
-- Firebase backend integration added (auth + terrace persistence).
-- Architecture structured with `presentation` (BLoC/UI), `domain` (entities/contracts), and `data` (datasources/repositories).
-- `AGENTS.md` created with project architecture and build instructions for Warp agents.
-- Google Sign-In flow updated in `lib/data/repositories/firebase_auth_repository_impl.dart`.
-- Attempted to create a Warp environment using `oz environment create`, but GitHub authorization is still required for private repo access.
+## Project structure
+- `lib/main.dart`: app entrypoint, loads `.env`, initializes Firebase, wires repositories and BLoCs.
+- `lib/presentation`: UI pages, widgets, and BLoCs.
+- `lib/domain`: core entities and repository interfaces.
+- `lib/data`: Firebase/Trefle datasources, models, and repository implementations.
+- `lib/core/theme`: theme tokens and shared styling.
+- `test/plant_api_service_test.dart`: focused, meaningful test suite for plant search.
+- `test/widget_test.dart`: still default counter test and currently stale.
+
+## Runtime flow
+- App starts in `lib/main.dart`.
+- `GardenPlannerApp` registers `AuthRepository` and `GardenRepository`.
+- `AuthBloc` drives login state.
+- `GardenBloc` loads garden data after auth succeeds.
+- Home screen shows garden canvas and editing flow.
+
+## Data and integrations
+- Firestore persists default garden at `users/{userId}/gardens/{gardenId}` with terraces in `terraces` subcollection.
+- `FirestoreGardenDataSource` still falls back to legacy garden data if new garden document does not exist.
+- Plant search uses Trefle API, not OpenFarm.
+- Firebase config values come from `.env` through `lib/firebase_options.dart`.
+- Only Android Firebase options are configured in code today.
 
 ## Development commands
 - Install dependencies: `flutter pub get`
@@ -18,21 +33,13 @@ Flutter app for planning garden terraces, authenticating users with Firebase/Goo
 - Run app: `flutter run`
 - Static analysis: `flutter analyze`
 - Run tests: `flutter test`
-- Run one test: `flutter test test/widget_test.dart --plain-name "Counter increments smoke test"`
+- Run focused plant search tests: `flutter test test/plant_api_service_test.dart`
 - Build Android APK: `flutter build apk`
 
-## TODOs (next steps)
-- Replace `test/widget_test.dart` default counter smoke test with tests that match current app behavior.
-- Implement non-placeholder history and terrace detail features (currently partially mock/placeholder).
-- Add CI checks for `flutter analyze` and `flutter test`.
+## Planning
+- TODOs and idea backlog live in `BACKLOG.md`.
 
-## Idea backlog
-- Crop lifecycle tracking per terrace (planting date, expected harvest, reminders).
-- Offline-first support with local cache + Firestore sync.
-- Drag/resize UX improvements with undo history for layout edits.
-- Export/share garden layouts.
-- Seasonal analytics dashboard by year.
-
-## Notes
+## Known quirks
 - Firebase values are loaded from `.env` through `lib/firebase_options.dart`.
-- Android is the currently configured Firebase target platform in code.
+- Android is currently only configured Firebase target in code.
+- `flutter test` currently fails because `test/widget_test.dart` builds app without Firebase initialization.
