@@ -1,6 +1,7 @@
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/firebase_auth_datasource.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
@@ -25,7 +26,11 @@ class FirebaseAuthRepositoryImpl implements AuthRepository {
   @override
   Future<AppUser?> signInWithGoogle() async {
     try {
-      await _googleSignIn.initialize();
+      // TODO: I do not have GOOGLE_SIGN_IN_SERVER_CLIENT_ID
+      final serverClientId = dotenv.env['GOOGLE_SIGN_IN_SERVER_CLIENT_ID'];
+      await _googleSignIn.initialize(
+        serverClientId: serverClientId?.isEmpty ?? true ? null : serverClientId,
+      );
       final googleUser = await _googleSignIn.authenticate();
 
       final googleAuth = googleUser.authentication;
