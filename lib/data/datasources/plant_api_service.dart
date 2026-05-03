@@ -33,9 +33,14 @@ class PlantApiService {
     }
 
     try {
-      final uri = Uri.parse(
-        '$_baseUrl$_searchPath',
-      ).replace(queryParameters: {'token': token, 'q': trimmedQuery});
+      final uri = Uri.parse('$_baseUrl$_searchPath').replace(
+        queryParameters: {
+          'token': token,
+          'q': trimmedQuery,
+          'filter[edible]': 'true',
+          'filter[vegetable]': 'true',
+        },
+      );
       final response = await _client
           .get(uri, headers: const {'Accept': 'application/json'})
           .timeout(const Duration(seconds: 10));

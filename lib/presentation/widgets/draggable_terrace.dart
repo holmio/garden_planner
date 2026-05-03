@@ -114,7 +114,11 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
             children: [
               Center(
                 child: Text(
-                  '${widget.terrace.name}\n${widget.terrace.sunExposure ?? ''}',
+                  [
+                    widget.terrace.plantName ?? widget.terrace.name,
+                    if (widget.terrace.sunExposure != null)
+                      widget.terrace.sunExposure,
+                  ].join('\n'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: colors.onPrimary,

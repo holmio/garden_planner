@@ -12,6 +12,8 @@ void main() {
         expect(request.url.path, '/api/v1/plants/search');
         expect(request.url.queryParameters['token'], 'test-token');
         expect(request.url.queryParameters['q'], 'tomato');
+        expect(request.url.queryParameters['filter[edible]'], 'true');
+        expect(request.url.queryParameters['filter[vegetable]'], 'true');
         return http.Response(
           '''
           {
@@ -20,6 +22,9 @@ void main() {
                 "common_name": "garden tomato",
                 "scientific_name": "Solanum lycopersicum",
                 "family_common_name": "Nightshade family",
+                "edible": true,
+                "vegetable": true,
+                "edible_part": ["fruit"],
                 "image_url": "https://example.com/tomato.jpg",
                 "links": {
                   "plant": "/api/v1/plants/solanum-lycopersicum"
@@ -51,9 +56,9 @@ void main() {
         'bibliography': null,
         'synonyms': null,
         'duration': null,
-        'edible': null,
-        'vegetable': null,
-        'edible_part': null,
+        'edible': true,
+        'vegetable': true,
+        'edible_part': ['fruit'],
         'observations': null,
         'plant_detail_path': '/api/v1/plants/solanum-lycopersicum',
       },

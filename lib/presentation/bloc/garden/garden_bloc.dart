@@ -20,6 +20,9 @@ class GardenBloc extends Bloc<GardenEvent, GardenState> {
     on<AddTerrace>(_onAddTerrace);
     on<UpdateTerracePosition>(_onUpdateTerracePosition);
     on<UpdateTerraceSize>(_onUpdateTerraceSize);
+    on<UpdateTerracePlant>(_onUpdateTerracePlant);
+    on<UpdateTerraceSunExposure>(_onUpdateTerraceSunExposure);
+    on<UpdateTerraceIrrigationType>(_onUpdateTerraceIrrigationType);
     on<UpdateGardenSize>(_onUpdateGardenSize);
     on<SaveGarden>(_onSaveGarden);
     on<ResetGarden>(_onResetGarden);
@@ -83,6 +86,44 @@ class GardenBloc extends Bloc<GardenEvent, GardenState> {
     }
   }
 
+  void _onUpdateTerracePlant(
+    UpdateTerracePlant event,
+    Emitter<GardenState> emit,
+  ) {
+    _updateTerrace(
+      event.id,
+      (terrace) => terrace.copyWith(
+        plantName: event.plantName,
+        plantDescription: event.plantDescription,
+        plantImagePath: event.plantImagePath,
+        plantDetailPath: event.plantDetailPath,
+      ),
+      emit,
+    );
+  }
+
+  void _onUpdateTerraceSunExposure(
+    UpdateTerraceSunExposure event,
+    Emitter<GardenState> emit,
+  ) {
+    _updateTerrace(
+      event.id,
+      (terrace) => terrace.copyWith(sunExposure: event.sunExposure),
+      emit,
+    );
+  }
+
+  void _onUpdateTerraceIrrigationType(
+    UpdateTerraceIrrigationType event,
+    Emitter<GardenState> emit,
+  ) {
+    _updateTerrace(
+      event.id,
+      (terrace) => terrace.copyWith(irrigationType: event.irrigationType),
+      emit,
+    );
+  }
+
   void _onUpdateGardenSize(UpdateGardenSize event, Emitter<GardenState> emit) {
     _currentGarden = _currentGarden.copyWith(
       size: GardenSize(width: event.width, height: event.height),
@@ -129,6 +170,20 @@ class GardenBloc extends Bloc<GardenEvent, GardenState> {
 
   void _emitLoaded(Emitter<GardenState> emit) {
     emit(GardenLoaded(garden: _currentGarden, hasUnsavedChanges: true));
+  }
+
+  void _updateTerrace(
+    String id,
+    Terrace Function(Terrace terrace) update,
+    Emitter<GardenState> emit,
+  ) {
+    final terraces = List<Terrace>.from(_currentGarden.terraces);
+    final index = terraces.indexWhere((t) => t.id == id);
+    if (index == -1) return;
+
+    terraces[index] = update(terraces[index]);
+    _currentGarden = _currentGarden.copyWith(terraces: terraces);
+    _emitLoaded(emit);
   }
 
   void _emitSaveFailure(

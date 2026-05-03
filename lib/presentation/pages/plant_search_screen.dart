@@ -48,7 +48,7 @@ class _PlantSearchScreenState extends State<PlantSearchScreen> {
   }
 
   Future<void> _openPlantDetails(Map<String, dynamic> plant) async {
-    final selectedPlant = await Navigator.push<String>(
+    final selectedPlant = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(builder: (context) => PlantDetailScreen(plant: plant)),
     );
@@ -104,6 +104,19 @@ class _PlantSearchScreenState extends State<PlantSearchScreen> {
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: colors.error,
                     ),
+                  ),
+                ),
+              ),
+            )
+          else if (_results.isEmpty)
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Text(
+                    'Search for edible garden plants to add to this terrace.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyLarge,
                   ),
                 ),
               ),
@@ -347,7 +360,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
           child: ElevatedButton.icon(
             icon: const Icon(Icons.add),
             label: const Text('Plant this'),
-            onPressed: () => Navigator.pop(context, plantName),
+            onPressed: () => Navigator.pop(context, plant),
           ),
         ),
       ),

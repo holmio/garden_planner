@@ -9,6 +9,10 @@ class Terrace extends Equatable {
   final double height;
   final String? sunExposure;
   final String? irrigationType;
+  final String? plantName;
+  final String? plantDescription;
+  final String? plantImagePath;
+  final String? plantDetailPath;
 
   const Terrace({
     required this.id,
@@ -19,6 +23,10 @@ class Terrace extends Equatable {
     required this.height,
     this.sunExposure,
     this.irrigationType,
+    this.plantName,
+    this.plantDescription,
+    this.plantImagePath,
+    this.plantDetailPath,
   });
 
   Terrace copyWith({
@@ -30,6 +38,10 @@ class Terrace extends Equatable {
     double? height,
     String? sunExposure,
     String? irrigationType,
+    String? plantName,
+    String? plantDescription,
+    String? plantImagePath,
+    String? plantDetailPath,
   }) {
     return Terrace(
       id: id ?? this.id,
@@ -40,6 +52,10 @@ class Terrace extends Equatable {
       height: height ?? this.height,
       sunExposure: sunExposure ?? this.sunExposure,
       irrigationType: irrigationType ?? this.irrigationType,
+      plantName: plantName ?? this.plantName,
+      plantDescription: plantDescription ?? this.plantDescription,
+      plantImagePath: plantImagePath ?? this.plantImagePath,
+      plantDetailPath: plantDetailPath ?? this.plantDetailPath,
     );
   }
 
@@ -53,5 +69,9 @@ class Terrace extends Equatable {
     height,
     sunExposure,
     irrigationType,
+    plantName,
+    plantDescription,
+    plantImagePath,
+    plantDetailPath,
   ];
 }

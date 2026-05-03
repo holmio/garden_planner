@@ -10,6 +10,10 @@ class TerraceModel extends Terrace {
     required super.height,
     super.sunExposure,
     super.irrigationType,
+    super.plantName,
+    super.plantDescription,
+    super.plantImagePath,
+    super.plantDetailPath,
   });
 
   factory TerraceModel.fromJson(Map<String, dynamic> json) {
@@ -22,6 +26,10 @@ class TerraceModel extends Terrace {
       height: (json['height'] as num).toDouble(),
       sunExposure: json['sunExposure'] as String?,
       irrigationType: json['irrigationType'] as String?,
+      plantName: json['plantName'] as String?,
+      plantDescription: json['plantDescription'] as String?,
+      plantImagePath: json['plantImagePath'] as String?,
+      plantDetailPath: json['plantDetailPath'] as String?,
     );
   }
 
@@ -35,6 +43,10 @@ class TerraceModel extends Terrace {
       'height': height,
       'sunExposure': sunExposure,
       'irrigationType': irrigationType,
+      'plantName': plantName,
+      'plantDescription': plantDescription,
+      'plantImagePath': plantImagePath,
+      'plantDetailPath': plantDetailPath,
     };
   }
 
@@ -48,6 +60,10 @@ class TerraceModel extends Terrace {
       height: terrace.height,
       sunExposure: terrace.sunExposure,
       irrigationType: terrace.irrigationType,
+      plantName: terrace.plantName,
+      plantDescription: terrace.plantDescription,
+      plantImagePath: terrace.plantImagePath,
+      plantDetailPath: terrace.plantDetailPath,
     );
   }
 }

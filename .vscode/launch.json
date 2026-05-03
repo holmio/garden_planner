@@ -8,7 +8,6 @@
             "name": "garden_planner (Android Emulator)",
             "request": "launch",
             "type": "dart",
-            "deviceId": "emulator-5554"
         },
         {
             "name": "garden_planner (profile mode)",

@@ -33,6 +33,45 @@ class UpdateTerraceSize extends GardenEvent {
   List<Object?> get props => [id, width, height];
 }
 
+class UpdateTerracePlant extends GardenEvent {
+  final String id;
+  final String plantName;
+  final String? plantDescription;
+  final String? plantImagePath;
+  final String? plantDetailPath;
+  UpdateTerracePlant({
+    required this.id,
+    required this.plantName,
+    this.plantDescription,
+    this.plantImagePath,
+    this.plantDetailPath,
+  });
+  @override
+  List<Object?> get props => [
+    id,
+    plantName,
+    plantDescription,
+    plantImagePath,
+    plantDetailPath,
+  ];
+}
+
+class UpdateTerraceSunExposure extends GardenEvent {
+  final String id;
+  final String sunExposure;
+  UpdateTerraceSunExposure(this.id, this.sunExposure);
+  @override
+  List<Object?> get props => [id, sunExposure];
+}
+
+class UpdateTerraceIrrigationType extends GardenEvent {
+  final String id;
+  final String irrigationType;
+  UpdateTerraceIrrigationType(this.id, this.irrigationType);
+  @override
+  List<Object?> get props => [id, irrigationType];
+}
+
 class UpdateGardenSize extends GardenEvent {
   final double width;
   final double height;
