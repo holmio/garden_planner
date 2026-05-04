@@ -14,6 +14,9 @@ class TerraceModel extends Terrace {
     super.plantDescription,
     super.plantImagePath,
     super.plantDetailPath,
+    super.plantingDate,
+    super.expectedHarvestDate,
+    super.harvestReminderEnabled,
   });
 
   factory TerraceModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +33,9 @@ class TerraceModel extends Terrace {
       plantDescription: json['plantDescription'] as String?,
       plantImagePath: json['plantImagePath'] as String?,
       plantDetailPath: json['plantDetailPath'] as String?,
+      plantingDate: _dateFromJson(json['plantingDate']),
+      expectedHarvestDate: _dateFromJson(json['expectedHarvestDate']),
+      harvestReminderEnabled: json['harvestReminderEnabled'] as bool? ?? false,
     );
   }
 
@@ -47,6 +53,9 @@ class TerraceModel extends Terrace {
       'plantDescription': plantDescription,
       'plantImagePath': plantImagePath,
       'plantDetailPath': plantDetailPath,
+      'plantingDate': plantingDate?.toIso8601String(),
+      'expectedHarvestDate': expectedHarvestDate?.toIso8601String(),
+      'harvestReminderEnabled': harvestReminderEnabled,
     };
   }
 
@@ -64,6 +73,17 @@ class TerraceModel extends Terrace {
       plantDescription: terrace.plantDescription,
       plantImagePath: terrace.plantImagePath,
       plantDetailPath: terrace.plantDetailPath,
+      plantingDate: terrace.plantingDate,
+      expectedHarvestDate: terrace.expectedHarvestDate,
+      harvestReminderEnabled: terrace.harvestReminderEnabled,
     );
+  }
+
+  static DateTime? _dateFromJson(Object? value) {
+    if (value is String) {
+      return DateTime.tryParse(value);
+    }
+
+    return null;
   }
 }

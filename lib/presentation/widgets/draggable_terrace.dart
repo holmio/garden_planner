@@ -116,6 +116,8 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
                 child: Text(
                   [
                     widget.terrace.plantName ?? widget.terrace.name,
+                    if (widget.terrace.expectedHarvestDate != null)
+                      'Harvest ${_formatShortDate(widget.terrace.expectedHarvestDate!)}',
                     if (widget.terrace.sunExposure != null)
                       widget.terrace.sunExposure,
                   ].join('\n'),
@@ -221,5 +223,9 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
       size.width.clamp(_minSize, maxWidth).toDouble(),
       size.height.clamp(_minSize, maxHeight).toDouble(),
     );
+  }
+
+  String _formatShortDate(DateTime date) {
+    return '${date.month}/${date.day}';
   }
 }

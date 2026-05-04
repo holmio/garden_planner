@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+const Object _unset = Object();
+
 class Terrace extends Equatable {
   final String id;
   final String name;
@@ -13,6 +15,9 @@ class Terrace extends Equatable {
   final String? plantDescription;
   final String? plantImagePath;
   final String? plantDetailPath;
+  final DateTime? plantingDate;
+  final DateTime? expectedHarvestDate;
+  final bool harvestReminderEnabled;
 
   const Terrace({
     required this.id,
@@ -27,6 +32,9 @@ class Terrace extends Equatable {
     this.plantDescription,
     this.plantImagePath,
     this.plantDetailPath,
+    this.plantingDate,
+    this.expectedHarvestDate,
+    this.harvestReminderEnabled = false,
   });
 
   Terrace copyWith({
@@ -36,12 +44,15 @@ class Terrace extends Equatable {
     double? y,
     double? width,
     double? height,
-    String? sunExposure,
-    String? irrigationType,
-    String? plantName,
-    String? plantDescription,
-    String? plantImagePath,
-    String? plantDetailPath,
+    Object? sunExposure = _unset,
+    Object? irrigationType = _unset,
+    Object? plantName = _unset,
+    Object? plantDescription = _unset,
+    Object? plantImagePath = _unset,
+    Object? plantDetailPath = _unset,
+    Object? plantingDate = _unset,
+    Object? expectedHarvestDate = _unset,
+    bool? harvestReminderEnabled,
   }) {
     return Terrace(
       id: id ?? this.id,
@@ -50,12 +61,30 @@ class Terrace extends Equatable {
       y: y ?? this.y,
       width: width ?? this.width,
       height: height ?? this.height,
-      sunExposure: sunExposure ?? this.sunExposure,
-      irrigationType: irrigationType ?? this.irrigationType,
-      plantName: plantName ?? this.plantName,
-      plantDescription: plantDescription ?? this.plantDescription,
-      plantImagePath: plantImagePath ?? this.plantImagePath,
-      plantDetailPath: plantDetailPath ?? this.plantDetailPath,
+      sunExposure: sunExposure == _unset
+          ? this.sunExposure
+          : sunExposure as String?,
+      irrigationType: irrigationType == _unset
+          ? this.irrigationType
+          : irrigationType as String?,
+      plantName: plantName == _unset ? this.plantName : plantName as String?,
+      plantDescription: plantDescription == _unset
+          ? this.plantDescription
+          : plantDescription as String?,
+      plantImagePath: plantImagePath == _unset
+          ? this.plantImagePath
+          : plantImagePath as String?,
+      plantDetailPath: plantDetailPath == _unset
+          ? this.plantDetailPath
+          : plantDetailPath as String?,
+      plantingDate: plantingDate == _unset
+          ? this.plantingDate
+          : plantingDate as DateTime?,
+      expectedHarvestDate: expectedHarvestDate == _unset
+          ? this.expectedHarvestDate
+          : expectedHarvestDate as DateTime?,
+      harvestReminderEnabled:
+          harvestReminderEnabled ?? this.harvestReminderEnabled,
     );
   }
 
@@ -73,5 +102,8 @@ class Terrace extends Equatable {
     plantDescription,
     plantImagePath,
     plantDetailPath,
+    plantingDate,
+    expectedHarvestDate,
+    harvestReminderEnabled,
   ];
 }

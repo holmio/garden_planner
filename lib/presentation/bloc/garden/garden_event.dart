@@ -39,12 +39,18 @@ class UpdateTerracePlant extends GardenEvent {
   final String? plantDescription;
   final String? plantImagePath;
   final String? plantDetailPath;
+  final DateTime? plantingDate;
+  final DateTime? expectedHarvestDate;
+  final bool? harvestReminderEnabled;
   UpdateTerracePlant({
     required this.id,
     required this.plantName,
     this.plantDescription,
     this.plantImagePath,
     this.plantDetailPath,
+    this.plantingDate,
+    this.expectedHarvestDate,
+    this.harvestReminderEnabled,
   });
   @override
   List<Object?> get props => [
@@ -53,6 +59,37 @@ class UpdateTerracePlant extends GardenEvent {
     plantDescription,
     plantImagePath,
     plantDetailPath,
+    plantingDate,
+    expectedHarvestDate,
+    harvestReminderEnabled,
+  ];
+}
+
+class UpdateTerraceLifecycle extends GardenEvent {
+  final String id;
+  final DateTime? plantingDate;
+  final DateTime? expectedHarvestDate;
+  final bool? harvestReminderEnabled;
+  final bool updatePlantingDate;
+  final bool updateExpectedHarvestDate;
+
+  UpdateTerraceLifecycle({
+    required this.id,
+    this.plantingDate,
+    this.expectedHarvestDate,
+    this.harvestReminderEnabled,
+    this.updatePlantingDate = false,
+    this.updateExpectedHarvestDate = false,
+  });
+
+  @override
+  List<Object?> get props => [
+    id,
+    plantingDate,
+    expectedHarvestDate,
+    harvestReminderEnabled,
+    updatePlantingDate,
+    updateExpectedHarvestDate,
   ];
 }
 

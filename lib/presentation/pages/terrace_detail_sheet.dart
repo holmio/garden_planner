@@ -143,10 +143,50 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
                 contentPadding: EdgeInsets.zero,
                 leading: _PlantAvatar(terrace: terrace),
                 title: Text(terrace.plantName!),
-                subtitle: Text(terrace.plantDescription ?? 'Planted here'),
+                subtitle: Text(_cropSubtitle(terrace)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _openCurrentPlant(context, terrace),
               ),
+            if (terrace.plantName != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              Text('Lifecycle', style: theme.textTheme.titleMedium),
+              const SizedBox(height: AppSpacing.sm),
+              _LifecycleDateTile(
+                icon: Icons.event_available,
+                label: 'Planted',
+                value: _formatDate(terrace.plantingDate),
+                onTap: () =>
+                    _pickLifecycleDate(context, terrace, isPlantingDate: true),
+              ),
+              _LifecycleDateTile(
+                icon: Icons.agriculture,
+                label: 'Expected harvest',
+                value: _formatDate(terrace.expectedHarvestDate),
+                onTap: () =>
+                    _pickLifecycleDate(context, terrace, isPlantingDate: false),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                secondary: const Icon(Icons.notifications_active_outlined),
+                title: const Text('Harvest reminder'),
+                subtitle: Text(
+                  terrace.expectedHarvestDate == null
+                      ? 'Set a harvest date first'
+                      : terrace.harvestReminderEnabled
+                      ? 'Reminder enabled'
+                      : 'Reminder off',
+                ),
+                value: terrace.harvestReminderEnabled,
+                onChanged: terrace.expectedHarvestDate == null
+                    ? null
+                    : (enabled) => context.read<GardenBloc>().add(
+                        UpdateTerraceLifecycle(
+                          id: terrace.id,
+                          harvestReminderEnabled: enabled,
+                        ),
+                      ),
+              ),
+            ],
             const SizedBox(height: AppSpacing.md),
             SizedBox(
               width: double.infinity,
@@ -181,6 +221,11 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
     if (!context.mounted || selectedPlant == null) return;
 
     final plantName = selectedPlant['name']?.toString() ?? 'Unknown Plant';
+    final plantingDate = _dateOnly(DateTime.now());
+    final daysToHarvest = _intFromValue(selectedPlant['days_to_harvest']);
+    final expectedHarvestDate = daysToHarvest == null
+        ? null
+        : plantingDate.add(Duration(days: daysToHarvest));
     context.read<GardenBloc>().add(
       UpdateTerracePlant(
         id: terrace.id,
@@ -188,6 +233,9 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
         plantDescription: selectedPlant['description']?.toString(),
         plantImagePath: selectedPlant['main_image_path']?.toString(),
         plantDetailPath: selectedPlant['plant_detail_path']?.toString(),
+        plantingDate: plantingDate,
+        expectedHarvestDate: expectedHarvestDate,
+        harvestReminderEnabled: expectedHarvestDate != null,
       ),
     );
 
@@ -215,6 +263,62 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
     );
   }
 
+  Future<void> _pickLifecycleDate(
+    BuildContext context,
+    Terrace terrace, {
+    required bool isPlantingDate,
+  }) async {
+    final now = _dateOnly(DateTime.now());
+    final initialDate =
+        (isPlantingDate ? terrace.plantingDate : terrace.expectedHarvestDate) ??
+        now;
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(now.year - 10),
+      lastDate: DateTime(now.year + 10),
+    );
+
+    if (!context.mounted || selectedDate == null) return;
+
+    context.read<GardenBloc>().add(
+      UpdateTerraceLifecycle(
+        id: terrace.id,
+        plantingDate: isPlantingDate ? _dateOnly(selectedDate) : null,
+        expectedHarvestDate: isPlantingDate ? null : _dateOnly(selectedDate),
+        updatePlantingDate: isPlantingDate,
+        updateExpectedHarvestDate: !isPlantingDate,
+      ),
+    );
+  }
+
+  String _cropSubtitle(Terrace terrace) {
+    final harvestDate = terrace.expectedHarvestDate;
+    if (harvestDate != null) {
+      return 'Harvest around ${_formatDate(harvestDate)}';
+    }
+
+    return terrace.plantDescription ?? 'Planted here';
+  }
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'Not set';
+
+    return '${date.month}/${date.day}/${date.year}';
+  }
+
+  DateTime _dateOnly(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  int? _intFromValue(Object? value) {
+    if (value is int) return value;
+    if (value is num) return value.round();
+    if (value is String) return int.tryParse(value);
+
+    return null;
+  }
+
   Widget _buildFeatureIcon(BuildContext context, IconData icon, String label) {
     final appTheme = Theme.of(context).extension<AppThemeExtension>()!;
     final textTheme = Theme.of(context).textTheme;
@@ -228,6 +332,32 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
           style: textTheme.bodyMedium?.copyWith(color: appTheme.gardenBorder),
         ),
       ],
+    );
+  }
+}
+
+class _LifecycleDateTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  const _LifecycleDateTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon),
+      title: Text(label),
+      subtitle: Text(value),
+      trailing: const Icon(Icons.edit_calendar_outlined),
+      onTap: onTap,
     );
   }
 }

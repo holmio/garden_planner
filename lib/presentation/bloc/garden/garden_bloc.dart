@@ -21,6 +21,7 @@ class GardenBloc extends Bloc<GardenEvent, GardenState> {
     on<UpdateTerracePosition>(_onUpdateTerracePosition);
     on<UpdateTerraceSize>(_onUpdateTerraceSize);
     on<UpdateTerracePlant>(_onUpdateTerracePlant);
+    on<UpdateTerraceLifecycle>(_onUpdateTerraceLifecycle);
     on<UpdateTerraceSunExposure>(_onUpdateTerraceSunExposure);
     on<UpdateTerraceIrrigationType>(_onUpdateTerraceIrrigationType);
     on<UpdateGardenSize>(_onUpdateGardenSize);
@@ -97,6 +98,28 @@ class GardenBloc extends Bloc<GardenEvent, GardenState> {
         plantDescription: event.plantDescription,
         plantImagePath: event.plantImagePath,
         plantDetailPath: event.plantDetailPath,
+        plantingDate: event.plantingDate,
+        expectedHarvestDate: event.expectedHarvestDate,
+        harvestReminderEnabled: event.harvestReminderEnabled,
+      ),
+      emit,
+    );
+  }
+
+  void _onUpdateTerraceLifecycle(
+    UpdateTerraceLifecycle event,
+    Emitter<GardenState> emit,
+  ) {
+    _updateTerrace(
+      event.id,
+      (terrace) => terrace.copyWith(
+        plantingDate: event.updatePlantingDate
+            ? event.plantingDate
+            : terrace.plantingDate,
+        expectedHarvestDate: event.updateExpectedHarvestDate
+            ? event.expectedHarvestDate
+            : terrace.expectedHarvestDate,
+        harvestReminderEnabled: event.harvestReminderEnabled,
       ),
       emit,
     );
