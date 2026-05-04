@@ -30,16 +30,21 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
   Widget build(BuildContext context) {
     return BlocBuilder<GardenBloc, GardenState>(
       builder: (context, state) {
-        final terrace = state is GardenLoaded
-            ? state.garden.terraces.firstWhere(
-                (terrace) => terrace.id == widget.terrace.id,
-                orElse: () => widget.terrace,
-              )
-            : widget.terrace;
+        final terrace = _currentTerrace(state);
 
         return _buildSheet(context, terrace);
       },
     );
+  }
+
+  Terrace _currentTerrace(GardenState state) {
+    if (state is! GardenLoaded) return widget.terrace;
+
+    for (final terrace in state.garden.terraces) {
+      if (terrace.id == widget.terrace.id) return terrace;
+    }
+
+    return widget.terrace;
   }
 
   Widget _buildSheet(BuildContext context, Terrace terrace) {
@@ -203,6 +208,22 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
                 onPressed: () => _selectPlant(context, terrace, appTheme),
               ),
             ),
+            const SizedBox(height: AppSpacing.sm),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.delete_outline),
+                label: const Text('Remove Terrace'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: colors.error,
+                  side: BorderSide(color: colors.error),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppSpacing.sm + AppSpacing.xs,
+                  ),
+                ),
+                onPressed: () => _confirmRemoveTerrace(context, terrace),
+              ),
+            ),
           ],
         ),
       ),
@@ -244,6 +265,42 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
         content: Text('Successfully planted $plantName.'),
         backgroundColor: appTheme.successText,
       ),
+    );
+  }
+
+  Future<void> _confirmRemoveTerrace(
+    BuildContext context,
+    Terrace terrace,
+  ) async {
+    final shouldRemove = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Remove terrace?'),
+          content: Text(
+            'Remove ${terrace.name} and its crop details from this garden?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton.tonalIcon(
+              icon: const Icon(Icons.delete_outline),
+              label: const Text('Remove'),
+              onPressed: () => Navigator.pop(dialogContext, true),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!context.mounted || shouldRemove != true) return;
+
+    context.read<GardenBloc>().add(RemoveTerrace(terrace.id));
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${terrace.name} removed. Save to keep changes.')),
     );
   }
 

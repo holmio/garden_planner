@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agents Check"
+  short_description: "Check AGENTS.md before and after work"
+  default_prompt: "Use $agents-check to honor repository instructions while changing code."

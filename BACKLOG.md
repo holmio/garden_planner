@@ -2,7 +2,6 @@
 
 ## TODOs (next steps)
 - Replace `test/widget_test.dart` default counter smoke test with tests that match current app behavior.
-- Implement non-placeholder history and terrace detail features.
 - Add CI checks for `flutter analyze` and `flutter test`.
 
 ## Idea backlog

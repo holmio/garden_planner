@@ -15,6 +15,13 @@ class AddTerrace extends GardenEvent {
   List<Object?> get props => [terrace];
 }
 
+class RemoveTerrace extends GardenEvent {
+  final String id;
+  RemoveTerrace(this.id);
+  @override
+  List<Object?> get props => [id];
+}
+
 class UpdateTerracePosition extends GardenEvent {
   final String id;
   final double x;

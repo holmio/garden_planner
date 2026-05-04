@@ -34,14 +34,22 @@ class FirestoreGardenDataSource {
   Future<void> saveGarden(String userId, GardenModel garden) async {
     final batch = _firestore.batch();
     final gardenDoc = _gardenDocument(userId, garden.id);
+    final terraceCollection = gardenDoc.collection('terraces');
+    final existingTerraces = await terraceCollection.get();
+    final currentTerraceIds = garden.terraceModels
+        .map((terrace) => terrace.id)
+        .toSet();
 
     batch.set(gardenDoc, garden.toFirestore());
 
+    for (final terraceDoc in existingTerraces.docs) {
+      if (!currentTerraceIds.contains(terraceDoc.id)) {
+        batch.delete(terraceDoc.reference);
+      }
+    }
+
     for (final terrace in garden.terraceModels) {
-      batch.set(
-        gardenDoc.collection('terraces').doc(terrace.id),
-        terrace.toJson(),
-      );
+      batch.set(terraceCollection.doc(terrace.id), terrace.toJson());
     }
 
     await batch.commit();

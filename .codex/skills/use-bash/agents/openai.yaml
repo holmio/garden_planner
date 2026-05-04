@@ -1,0 +1,4 @@
+interface:
+  display_name: "Use Bash"
+  short_description: "Prefer Bash commands over PowerShell"
+  default_prompt: "Use $use-bash to run and write terminal commands in Bash style."

@@ -18,6 +18,7 @@ class GardenBloc extends Bloc<GardenEvent, GardenState> {
     : super(GardenInitial()) {
     on<LoadGarden>(_onLoadGarden);
     on<AddTerrace>(_onAddTerrace);
+    on<RemoveTerrace>(_onRemoveTerrace);
     on<UpdateTerracePosition>(_onUpdateTerracePosition);
     on<UpdateTerraceSize>(_onUpdateTerraceSize);
     on<UpdateTerracePlant>(_onUpdateTerracePlant);
@@ -56,6 +57,16 @@ class GardenBloc extends Bloc<GardenEvent, GardenState> {
     _currentGarden = _currentGarden.copyWith(
       terraces: List.from(_currentGarden.terraces)..add(event.terrace),
     );
+    _emitLoaded(emit);
+  }
+
+  void _onRemoveTerrace(RemoveTerrace event, Emitter<GardenState> emit) {
+    final terraces = _currentGarden.terraces
+        .where((terrace) => terrace.id != event.id)
+        .toList();
+    if (terraces.length == _currentGarden.terraces.length) return;
+
+    _currentGarden = _currentGarden.copyWith(terraces: terraces);
     _emitLoaded(emit);
   }
 
