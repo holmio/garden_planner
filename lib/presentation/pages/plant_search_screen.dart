@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../data/datasources/plant_api_service.dart';
 import '../../core/theme/app_spacing.dart';
 
@@ -63,7 +64,7 @@ class _PlantSearchScreenState extends State<PlantSearchScreen> {
     final colors = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Search Plant Database')),
+      appBar: AppBar(title: const Text('Search Plant Catalog')),
       body: Column(
         children: [
           Padding(
@@ -114,7 +115,7 @@ class _PlantSearchScreenState extends State<PlantSearchScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   child: Text(
-                    'Search for edible garden plants to add to this terrace.',
+                    'Search the local European plant catalog to add a crop.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyLarge,
                   ),
@@ -128,22 +129,9 @@ class _PlantSearchScreenState extends State<PlantSearchScreen> {
                 itemBuilder: (context, index) {
                   final plant = _results[index];
                   return ListTile(
-                    leading:
-                        plant['main_image_path'] != null &&
-                            plant['main_image_path'].toString().startsWith(
-                              'http',
-                            )
-                        ? Image.network(
-                            plant['main_image_path'],
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Icon(
-                              Icons.local_florist,
-                              color: colors.primary,
-                            ),
-                          )
-                        : Icon(Icons.local_florist, color: colors.primary),
+                    leading: _PlantIconThumb(
+                      assetPath: plant['icon_asset_path']?.toString(),
+                    ),
                     title: Text(
                       plant['name'] ?? 'Unknown Plant',
                       style: theme.textTheme.bodyLarge?.copyWith(
@@ -224,6 +212,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
     final plant = _plant;
     final plantName = plant['name']?.toString() ?? 'Unknown Plant';
     final imagePath = plant['main_image_path']?.toString();
+    final iconAssetPath = plant['icon_asset_path']?.toString();
     final synonyms = plant['synonyms'];
 
     return Scaffold(
@@ -243,6 +232,8 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                     _PlantImageError(color: colors.primary),
               ),
             )
+          else if (iconAssetPath != null)
+            _PlantIconHero(assetPath: iconAssetPath)
           else
             _PlantImageError(color: colors.primary),
           const SizedBox(height: AppSpacing.lg),
@@ -323,6 +314,32 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
             ],
           ),
           _PlantInfoGroup(
+            title: 'Care and Planning',
+            rows: [
+              _PlantInfoItem('Difficulty', plant['difficulty']),
+              _PlantInfoItem('Planting depth', plant['planting_depth']),
+              _PlantInfoItem('Watering', plant['watering']),
+              _PlantInfoItem('Fertilizing', plant['fertilizing']),
+              _PlantInfoItem('Care notes', plant['care_notes']),
+              _PlantInfoItem('Good companions', plant['good_companions']),
+              _PlantInfoItem('Avoid near', plant['bad_companions']),
+            ],
+          ),
+          _PlantInfoGroup(
+            title: 'Problems and Rotation',
+            rows: [
+              _PlantInfoItem('Common pests', plant['pests']),
+              _PlantInfoItem('Common diseases', plant['diseases']),
+              _PlantInfoItem('Warnings', plant['warnings']),
+              _PlantInfoItem('Rotation family', plant['rotation_family']),
+              _PlantInfoItem(
+                'Avoid same bed',
+                _yearsValue(plant['avoid_same_bed_years']),
+              ),
+              _PlantInfoItem('Rotation notes', plant['rotation_notes']),
+            ],
+          ),
+          _PlantInfoGroup(
             title: 'Plant Features',
             rows: [
               _PlantInfoItem('Flower color', plant['flower_color']),
@@ -385,6 +402,11 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
     if (maximum == null) return 'From $minimum';
     return '$minimum - $maximum';
   }
+
+  String? _yearsValue(Object? value) {
+    if (value == null) return null;
+    return '$value years';
+  }
 }
 
 class _PlantInfoItem {
@@ -437,6 +459,56 @@ class _PlantImageError extends StatelessWidget {
         color: color.withValues(alpha: 0.08),
       ),
       child: Icon(Icons.local_florist, color: color, size: 56),
+    );
+  }
+}
+
+class _PlantIconThumb extends StatelessWidget {
+  final String? assetPath;
+
+  const _PlantIconThumb({required this.assetPath});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    if (assetPath == null || assetPath!.isEmpty) {
+      return Icon(Icons.local_florist, color: colors.primary);
+    }
+
+    return SizedBox.square(
+      dimension: 50,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: colors.primaryContainer.withValues(alpha: 0.35),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: SvgPicture.asset(assetPath!, fit: BoxFit.contain),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlantIconHero extends StatelessWidget {
+  final String assetPath;
+
+  const _PlantIconHero({required this.assetPath});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      height: 160,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: colors.primaryContainer.withValues(alpha: 0.35),
+      ),
+      child: Center(
+        child: SvgPicture.asset(assetPath, width: 108, height: 108),
+      ),
     );
   }
 }

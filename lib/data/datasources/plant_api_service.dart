@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
+
+import 'package:flutter/services.dart';
 
 class PlantApiException implements Exception {
   final String message;
@@ -12,191 +12,157 @@ class PlantApiException implements Exception {
 }
 
 class PlantApiService {
-  static const String _baseUrl = 'https://trefle.io';
-  static const String _searchPath = '/api/v1/plants/search';
+  static const String _catalogAssetPath =
+      'assets/data/common_plants_europe.json';
 
-  final http.Client _client;
-  final String? _apiToken;
+  final AssetBundle _assetBundle;
+  final List<Map<String, dynamic>>? _plants;
 
-  PlantApiService({http.Client? client, String? apiToken})
-    : _client = client ?? http.Client(),
-      _apiToken = apiToken ?? dotenv.env['TREFLE_API_TOKEN'];
+  PlantApiService({
+    AssetBundle? assetBundle,
+    List<Map<String, dynamic>>? plants,
+  }) : _assetBundle = assetBundle ?? rootBundle,
+       _plants = plants;
 
   Future<List<Map<String, dynamic>>> searchPlants(String query) async {
     final trimmedQuery = query.trim();
     if (trimmedQuery.isEmpty) return [];
-    final token = _apiToken?.trim();
-    if (token == null || token.isEmpty) {
-      throw const PlantApiException(
-        'Missing Trefle API token. Add TREFLE_API_TOKEN to your .env file.',
+
+    final plants = await _loadPlants();
+    final normalizedQuery = _normalize(trimmedQuery);
+    final matches = plants.where((plant) {
+      final searchableValues = [
+        plant['id'],
+        plant['name'],
+        plant['common_name'],
+        plant['scientific_name'],
+        plant['family'],
+        plant['family_common_name'],
+        plant['genus'],
+        ..._asStringList(plant['aliases']),
+        ..._asStringList(plant['tags']),
+      ];
+
+      return searchableValues.any(
+        (value) =>
+            _normalize(value?.toString() ?? '').contains(normalizedQuery),
       );
-    }
+    }).toList();
 
-    try {
-      final uri = Uri.parse('$_baseUrl$_searchPath').replace(
-        queryParameters: {
-          'token': token,
-          'q': trimmedQuery,
-          'filter[edible]': 'true',
-          'filter[vegetable]': 'true',
-        },
-      );
-      final response = await _client
-          .get(uri, headers: const {'Accept': 'application/json'})
-          .timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final contentType = response.headers['content-type'] ?? '';
-        if (!contentType.contains('application/json')) {
-          throw const PlantApiException(
-            'The plant database is not returning JSON right now.',
-          );
-        }
-
-        final decoded = json.decode(response.body);
-        if (decoded is! Map<String, dynamic> || decoded['data'] is! List) {
-          throw const PlantApiException(
-            'The plant database response was not in the expected format.',
-          );
-        }
-
-        final records = decoded['data'] as List<dynamic>;
-        return records
-            .whereType<Map<String, dynamic>>()
-            .map(_mapTrefleRecord)
-            .toList();
-      }
-
-      throw PlantApiException(
-        'The plant database returned status ${response.statusCode}.',
-      );
-    } catch (e) {
-      if (e is PlantApiException) rethrow;
-      throw const PlantApiException(
-        'Could not reach the plant database. Please try again later.',
-      );
-    }
+    return matches.map(_toSearchRecord).toList();
   }
 
   Future<Map<String, dynamic>> fetchPlantDetails(String path) async {
-    final token = _apiToken?.trim();
-    if (token == null || token.isEmpty) {
-      throw const PlantApiException(
-        'Missing Trefle API token. Add TREFLE_API_TOKEN to your .env file.',
-      );
+    final plantId = path.startsWith('catalog://')
+        ? path.substring('catalog://'.length)
+        : path;
+    final plants = await _loadPlants();
+    for (final plant in plants) {
+      if (plant['id'] == plantId) return _toDetailRecord(plant);
     }
 
+    throw const PlantApiException(
+      'This plant is not in the local catalog yet.',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> _loadPlants() async {
+    if (_plants != null) return _plants;
+
     try {
-      final uri = Uri.parse(
-        '$_baseUrl$path',
-      ).replace(queryParameters: {'token': token});
-      final response = await _client
-          .get(uri, headers: const {'Accept': 'application/json'})
-          .timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final contentType = response.headers['content-type'] ?? '';
-        if (!contentType.contains('application/json')) {
-          throw const PlantApiException(
-            'The plant database is not returning JSON right now.',
-          );
-        }
-
-        final decoded = json.decode(response.body);
-        if (decoded is! Map<String, dynamic> ||
-            decoded['data'] is! Map<String, dynamic>) {
-          throw const PlantApiException(
-            'The plant details were not in the expected format.',
-          );
-        }
-
-        return _mapTrefleDetails(decoded['data'] as Map<String, dynamic>);
+      final contents = await _assetBundle.loadString(_catalogAssetPath);
+      final decoded = json.decode(contents);
+      if (decoded is! Map<String, dynamic> || decoded['plants'] is! List) {
+        throw const PlantApiException(
+          'The local plant catalog is not in the expected format.',
+        );
       }
 
-      throw PlantApiException(
-        'The plant database returned status ${response.statusCode}.',
-      );
-    } catch (e) {
-      if (e is PlantApiException) rethrow;
-      throw const PlantApiException(
-        'Could not reach the plant database. Please try again later.',
-      );
+      return (decoded['plants'] as List<dynamic>)
+          .whereType<Map<String, dynamic>>()
+          .toList();
+    } catch (error) {
+      if (error is PlantApiException) rethrow;
+      throw const PlantApiException('Could not load the local plant catalog.');
     }
   }
 
-  Map<String, dynamic> _mapTrefleRecord(Map<String, dynamic> record) {
-    final commonName = record['common_name'] as String?;
-    final scientificName = record['scientific_name'] as String?;
-    final family = record['family_common_name'] ?? record['family'];
-    final links = record['links'];
-
+  Map<String, dynamic> _toSearchRecord(Map<String, dynamic> plant) {
     return {
-      'name': _formatPlantName(commonName ?? scientificName ?? 'Unknown Plant'),
-      'description': _buildDescription(scientificName, family),
-      'main_image_path': record['image_url'],
-      'common_name': commonName,
-      'scientific_name': scientificName,
-      'family': record['family'],
-      'family_common_name': record['family_common_name'],
-      'genus': record['genus'],
-      'status': record['status'],
-      'year': record['year'],
-      'bibliography': record['bibliography'],
-      'synonyms': record['synonyms'],
-      'duration': record['duration'],
-      'edible': record['edible'],
-      'vegetable': record['vegetable'],
-      'edible_part': record['edible_part'],
-      'observations': record['observations'],
-      'plant_detail_path': links is Map<String, dynamic>
-          ? links['plant'] ?? links['self']
-          : null,
+      'name': plant['name'],
+      'description': plant['description'],
+      'main_image_path': plant['icon_asset_path'],
+      'icon_asset_path': plant['icon_asset_path'],
+      'common_name': plant['common_name'],
+      'scientific_name': plant['scientific_name'],
+      'family': plant['family'],
+      'family_common_name': plant['family_common_name'],
+      'genus': plant['genus'],
+      'status': 'Curated garden crop',
+      'year': null,
+      'bibliography': plant['source_note'],
+      'synonyms': plant['aliases'],
+      'duration': plant['duration'],
+      'edible': true,
+      'vegetable': plant['category'] != 'fruit' && plant['category'] != 'herb',
+      'edible_part': plant['edible_parts'],
+      'observations': plant['observations'],
+      'days_to_harvest': plant['days_to_harvest'],
+      'plant_detail_path': 'catalog://${plant['id']}',
     };
   }
 
-  Map<String, dynamic> _mapTrefleDetails(Map<String, dynamic> record) {
-    final mainSpecies = _asMap(record['main_species']);
-    final details = mainSpecies ?? record;
-    final growth = _asMap(details['growth']);
-    final specifications = _asMap(details['specifications']);
-    final flower = _asMap(details['flower']);
-    final foliage = _asMap(details['foliage']);
-    final fruitOrSeed = _asMap(details['fruit_or_seed']);
+  Map<String, dynamic> _toDetailRecord(Map<String, dynamic> plant) {
+    final spacing = _asMap(plant['spacing']);
+    final height = _asMap(plant['height_cm']);
+    final soil = _asMap(plant['soil']);
+    final seasons = _asMap(plant['europe_season']);
+    final companions = _asMap(plant['companions']);
+    final problems = _asMap(plant['problems']);
+    final care = _asMap(plant['care']);
+    final rotation = _asMap(plant['rotation']);
 
     return {
-      ..._mapTrefleRecord(details),
-      'duration': details['duration'],
-      'edible': details['edible'],
-      'vegetable': details['vegetable'],
-      'edible_part': details['edible_part'],
-      'observations': details['observations'],
-      'days_to_harvest': growth?['days_to_harvest'],
-      'sowing': growth?['sowing'],
-      'growth_description': growth?['description'],
-      'light': growth?['light'],
-      'soil_humidity': growth?['soil_humidity'],
-      'soil_texture': growth?['soil_texture'],
-      'soil_nutriments': growth?['soil_nutriments'],
-      'ph_minimum': growth?['ph_minimum'],
-      'ph_maximum': growth?['ph_maximum'],
-      'minimum_temperature': _formatMeasure(growth?['minimum_temperature']),
-      'maximum_temperature': _formatMeasure(growth?['maximum_temperature']),
-      'minimum_root_depth': _formatMeasure(growth?['minimum_root_depth']),
-      'row_spacing': _formatMeasure(growth?['row_spacing']),
-      'spread': _formatMeasure(growth?['spread']),
-      'growth_months': growth?['growth_months'],
-      'bloom_months': growth?['bloom_months'],
-      'fruit_months': growth?['fruit_months'],
-      'growth_habit': specifications?['growth_habit'],
-      'growth_form': specifications?['growth_form'],
-      'growth_rate': specifications?['growth_rate'],
-      'toxicity': specifications?['toxicity'],
-      'average_height': _formatMeasure(specifications?['average_height']),
-      'maximum_height': _formatMeasure(specifications?['maximum_height']),
-      'flower_color': flower?['color'],
-      'foliage_color': foliage?['color'],
-      'foliage_texture': foliage?['texture'],
-      'fruit_color': fruitOrSeed?['color'],
+      ..._toSearchRecord(plant),
+      'duration': plant['duration'],
+      'growth_habit': plant['plant_type'],
+      'growth_form': plant['category'],
+      'growth_rate': plant['growth_rate'],
+      'sowing': _formatSeason(seasons?['sow_or_plant']),
+      'growth_months': seasons?['main_growth'],
+      'bloom_months': seasons?['flowering'],
+      'fruit_months': seasons?['harvest'],
+      'light': plant['light'],
+      'soil_humidity': plant['soil_moisture'],
+      'soil_texture': soil?['texture'],
+      'soil_nutriments': soil?['nutrients'],
+      'ph_minimum': soil?['ph_min'],
+      'ph_maximum': soil?['ph_max'],
+      'minimum_temperature': plant['minimum_temperature'],
+      'maximum_temperature': plant['maximum_temperature'],
+      'minimum_root_depth': plant['minimum_root_depth'],
+      'row_spacing': _formatCm(spacing?['between_rows_cm']),
+      'spread': _formatCm(spacing?['between_plants_cm']),
+      'average_height': _formatHeight(height, average: true),
+      'maximum_height': _formatHeight(height),
+      'toxicity': plant['toxicity'],
+      'flower_color': plant['flower_color'],
+      'foliage_color': plant['foliage_color'],
+      'fruit_color': plant['fruit_color'],
+      'difficulty': plant['difficulty'],
+      'planting_depth': _formatCm(spacing?['planting_depth_cm']),
+      'good_companions': companions?['good'],
+      'bad_companions': companions?['bad'],
+      'watering': care?['watering'],
+      'fertilizing': care?['fertilizing'],
+      'care_notes': care?['notes'],
+      'pests': problems?['pests'],
+      'diseases': problems?['diseases'],
+      'warnings': problems?['warnings'],
+      'rotation_family': rotation?['family'],
+      'avoid_same_bed_years': rotation?['avoid_same_bed_years'],
+      'rotation_notes': rotation?['notes'],
+      'tags': plant['tags'],
     };
   }
 
@@ -204,29 +170,40 @@ class PlantApiService {
     return value is Map<String, dynamic> ? value : null;
   }
 
-  String? _formatMeasure(Object? value) {
-    if (value is! Map<String, dynamic>) return null;
-    final amount =
-        value['cm'] ?? value['mm'] ?? value['celsius'] ?? value['deg_f'];
-    if (amount == null) return null;
-    if (value['cm'] != null) return '$amount cm';
-    if (value['mm'] != null) return '$amount mm';
-    if (value['celsius'] != null) return '$amount C';
-    if (value['deg_f'] != null) return '$amount F';
-    return amount.toString();
+  List<String> _asStringList(Object? value) {
+    if (value is! List) return const [];
+    return value.whereType<String>().toList();
   }
 
-  String _formatPlantName(String value) {
-    if (value.isEmpty) return value;
-    return value[0].toUpperCase() + value.substring(1);
+  String? _formatSeason(Object? value) {
+    if (value is! List || value.isEmpty) return null;
+    return value.join(', ');
   }
 
-  String _buildDescription(Object? scientificName, Object? family) {
-    final details = [
-      if (scientificName != null) scientificName.toString(),
-      if (family != null) family.toString(),
-    ];
+  String? _formatCm(Object? value) {
+    if (value == null) return null;
+    return '$value cm';
+  }
 
-    return details.isEmpty ? 'No description available.' : details.join(' | ');
+  String? _formatHeight(Map<String, dynamic>? height, {bool average = false}) {
+    if (height == null) return null;
+    final min = height['min'];
+    final max = height['max'];
+    if (average && min is num && max is num) {
+      return '${((min + max) / 2).round()} cm';
+    }
+    return _formatCm(max ?? min);
+  }
+
+  String _normalize(String value) {
+    return value
+        .toLowerCase()
+        .replaceAll('ä', 'a')
+        .replaceAll('ö', 'o')
+        .replaceAll('ü', 'u')
+        .replaceAll('ß', 'ss')
+        .replaceAll(RegExp(r'[^a-z0-9 ]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
   }
 }
