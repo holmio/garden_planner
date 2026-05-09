@@ -15,6 +15,7 @@ class Terrace extends Equatable {
   final String? plantDescription;
   final String? plantImagePath;
   final String? plantDetailPath;
+  final int? daysToHarvest;
   final DateTime? plantingDate;
   final DateTime? expectedHarvestDate;
   final bool harvestReminderEnabled;
@@ -32,6 +33,7 @@ class Terrace extends Equatable {
     this.plantDescription,
     this.plantImagePath,
     this.plantDetailPath,
+    this.daysToHarvest,
     this.plantingDate,
     this.expectedHarvestDate,
     this.harvestReminderEnabled = false,
@@ -50,6 +52,7 @@ class Terrace extends Equatable {
     Object? plantDescription = _unset,
     Object? plantImagePath = _unset,
     Object? plantDetailPath = _unset,
+    Object? daysToHarvest = _unset,
     Object? plantingDate = _unset,
     Object? expectedHarvestDate = _unset,
     bool? harvestReminderEnabled,
@@ -77,6 +80,9 @@ class Terrace extends Equatable {
       plantDetailPath: plantDetailPath == _unset
           ? this.plantDetailPath
           : plantDetailPath as String?,
+      daysToHarvest: daysToHarvest == _unset
+          ? this.daysToHarvest
+          : daysToHarvest as int?,
       plantingDate: plantingDate == _unset
           ? this.plantingDate
           : plantingDate as DateTime?,
@@ -102,6 +108,7 @@ class Terrace extends Equatable {
     plantDescription,
     plantImagePath,
     plantDetailPath,
+    daysToHarvest,
     plantingDate,
     expectedHarvestDate,
     harvestReminderEnabled,

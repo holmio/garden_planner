@@ -46,6 +46,7 @@ class UpdateTerracePlant extends GardenEvent {
   final String? plantDescription;
   final String? plantImagePath;
   final String? plantDetailPath;
+  final int? daysToHarvest;
   final DateTime? plantingDate;
   final DateTime? expectedHarvestDate;
   final bool? harvestReminderEnabled;
@@ -55,6 +56,7 @@ class UpdateTerracePlant extends GardenEvent {
     this.plantDescription,
     this.plantImagePath,
     this.plantDetailPath,
+    this.daysToHarvest,
     this.plantingDate,
     this.expectedHarvestDate,
     this.harvestReminderEnabled,
@@ -66,6 +68,7 @@ class UpdateTerracePlant extends GardenEvent {
     plantDescription,
     plantImagePath,
     plantDetailPath,
+    daysToHarvest,
     plantingDate,
     expectedHarvestDate,
     harvestReminderEnabled,

@@ -6,6 +6,7 @@ import '../../core/theme/app_theme_extension.dart';
 import '../bloc/garden/garden_bloc.dart';
 import '../bloc/garden/garden_event.dart';
 import '../bloc/garden/garden_state.dart';
+import '../widgets/garden_plant_icon.dart';
 import 'plant_search_screen.dart';
 
 class TerraceDetailSheet extends StatefulWidget {
@@ -254,6 +255,7 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
         plantDescription: selectedPlant['description']?.toString(),
         plantImagePath: selectedPlant['main_image_path']?.toString(),
         plantDetailPath: selectedPlant['plant_detail_path']?.toString(),
+        daysToHarvest: daysToHarvest,
         plantingDate: plantingDate,
         expectedHarvestDate: expectedHarvestDate,
         harvestReminderEnabled: expectedHarvestDate != null,
@@ -314,6 +316,7 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
             'description': terrace.plantDescription,
             'main_image_path': terrace.plantImagePath,
             'plant_detail_path': terrace.plantDetailPath,
+            'days_to_harvest': terrace.daysToHarvest,
           },
         ),
       ),
@@ -338,13 +341,19 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
 
     if (!context.mounted || selectedDate == null) return;
 
+    final plantingDate = isPlantingDate ? _dateOnly(selectedDate) : null;
+    final expectedHarvestDate = isPlantingDate
+        ? _expectedHarvestDate(plantingDate, terrace.daysToHarvest)
+        : _dateOnly(selectedDate);
+
     context.read<GardenBloc>().add(
       UpdateTerraceLifecycle(
         id: terrace.id,
-        plantingDate: isPlantingDate ? _dateOnly(selectedDate) : null,
-        expectedHarvestDate: isPlantingDate ? null : _dateOnly(selectedDate),
+        plantingDate: plantingDate,
+        expectedHarvestDate: expectedHarvestDate,
         updatePlantingDate: isPlantingDate,
-        updateExpectedHarvestDate: !isPlantingDate,
+        updateExpectedHarvestDate:
+            !isPlantingDate || terrace.daysToHarvest != null,
       ),
     );
   }
@@ -374,6 +383,12 @@ class _TerraceDetailSheetState extends State<TerraceDetailSheet> {
     if (value is String) return int.tryParse(value);
 
     return null;
+  }
+
+  DateTime? _expectedHarvestDate(DateTime? plantingDate, int? daysToHarvest) {
+    if (plantingDate == null || daysToHarvest == null) return null;
+
+    return plantingDate.add(Duration(days: daysToHarvest));
   }
 
   Widget _buildFeatureIcon(BuildContext context, IconData icon, String label) {
@@ -426,16 +441,6 @@ class _PlantAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final imagePath = terrace.plantImagePath;
-
-    if (imagePath != null && imagePath.startsWith('http')) {
-      return CircleAvatar(backgroundImage: NetworkImage(imagePath));
-    }
-
-    return CircleAvatar(
-      backgroundColor: colors.primaryContainer,
-      child: Icon(Icons.local_florist, color: colors.onPrimaryContainer),
-    );
+    return GardenPlantIcon(plantName: terrace.plantName, size: 40);
   }
 }

@@ -109,6 +109,7 @@ class GardenBloc extends Bloc<GardenEvent, GardenState> {
         plantDescription: event.plantDescription,
         plantImagePath: event.plantImagePath,
         plantDetailPath: event.plantDetailPath,
+        daysToHarvest: event.daysToHarvest,
         plantingDate: event.plantingDate,
         expectedHarvestDate: event.expectedHarvestDate,
         harvestReminderEnabled: event.harvestReminderEnabled,

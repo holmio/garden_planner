@@ -6,6 +6,7 @@ import '../../domain/entities/terrace.dart';
 import '../bloc/garden/garden_bloc.dart';
 import '../bloc/garden/garden_event.dart';
 import '../pages/terrace_detail_sheet.dart';
+import 'garden_plant_icon.dart';
 
 class DraggableTerrace extends StatefulWidget {
   final Terrace terrace;
@@ -63,6 +64,10 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final appTheme = Theme.of(context).extension<AppThemeExtension>()!;
+    final hasPlant = widget.terrace.plantName != null;
+    final plantIconSize = (_size.shortestSide * 0.28)
+        .clamp(22.0, 36.0)
+        .toDouble();
 
     return Positioned(
       left: _position.dx,
@@ -113,18 +118,38 @@ class _DraggableTerraceState extends State<DraggableTerrace> {
           child: Stack(
             children: [
               Center(
-                child: Text(
-                  [
-                    widget.terrace.plantName ?? widget.terrace.name,
-                    if (widget.terrace.expectedHarvestDate != null)
-                      'Harvest ${_formatShortDate(widget.terrace.expectedHarvestDate!)}',
-                    if (widget.terrace.sunExposure != null)
-                      widget.terrace.sunExposure,
-                  ].join('\n'),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: colors.onPrimary,
-                    fontWeight: FontWeight.bold,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (hasPlant) ...[
+                        GardenPlantIcon(
+                          plantName: widget.terrace.plantName,
+                          size: plantIconSize,
+                        ),
+                        const SizedBox(height: 4),
+                      ],
+                      Flexible(
+                        child: Text(
+                          [
+                            widget.terrace.plantName ?? widget.terrace.name,
+                            if (widget.terrace.expectedHarvestDate != null)
+                              'Harvest ${_formatShortDate(widget.terrace.expectedHarvestDate!)}',
+                            if (widget.terrace.sunExposure != null)
+                              widget.terrace.sunExposure,
+                          ].join('\n'),
+                          maxLines: hasPlant && _size.height < 110 ? 2 : 3,
+                          overflow: TextOverflow.fade,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: colors.onPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
